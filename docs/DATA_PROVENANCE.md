@@ -9,7 +9,7 @@ The current benchmark is a **pilot benchmark created during the design conversat
 `current_project/benchmark/concepts.csv`
 
 SHA-256:
-`9d9f51f1d6d205d11bfd88a6b12e24791a50ec2c41c4654f14c82c5afac37bdc`
+`73dbb915503fcb5e8c6e6c0bb5bba262c2d5785ee9e1a5a8699abcd74838b8db`
 
 212 concepts with:
 - stable pilot ID;
@@ -43,6 +43,14 @@ Therefore:
 - relation examples are curated rather than population-sampled;
 - the 38 concepts added on 2026-09-03 were assistant-curated on the same basis
   as the original 174 and have had no more review than they did;
+- `study` was changed from 学习 to 研究 on 2026-09-03 because `learn` also carried
+  学习, making the two concepts byte-identical in every Chinese system. 研究 is
+  closer to "research" than to "study" and is exactly the kind of choice that
+  needs the bilingual review this benchmark has never had;
+- six Chinese terms (哺乳动物, 鲸, 锤子, 钥匙 and two others) tokenise to `<unk>`
+  in XGLM only, 2.8% of the benchmark, which makes them mutually
+  indistinguishable in that one system. Qwen and BLOOM cover the set fully.
+  `scripts/qc_representations.py --tokenizers` re-measures this;
 - the benchmark is not simply a ConceptNet export;
 - symmetric relations are still stored as directed rows;
 - inverse families such as PartOf/HasA introduce dependency.

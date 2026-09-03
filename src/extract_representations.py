@@ -20,13 +20,22 @@ def masked_mean(h, mask):
     mask = mask.to(h.dtype).unsqueeze(-1)
     return (h * mask).sum(1) / mask.sum(1).clamp_min(1)
 
-def load_model(name, device):
+# bloom-560m produces NaN activations in float16 on CUDA: 80% of a run's hidden
+# states came back NaN on 2026-09-03, while float32 on the same GPU and inputs
+# was clean with max|h| = 1380. Extraction here is 212 short prompts against
+# ~0.5B models, so float32 costs seconds and buys a representation you can
+# trust. Override with --dtype only for a model you have checked.
+DEFAULT_DTYPE = "float32"
+DTYPES = {"float32": torch.float32, "float16": torch.float16, "bfloat16": torch.bfloat16}
+
+
+def load_model(name, device, dtype=DEFAULT_DTYPE):
     tok = AutoTokenizer.from_pretrained(name, use_fast=True)
     if tok.pad_token_id is None:
         tok.pad_token = tok.eos_token or tok.unk_token
     kwargs = {"low_cpu_mem_usage": True}
     if device.startswith("cuda"):
-        kwargs[DTYPE_KWARG] = torch.float16
+        kwargs[DTYPE_KWARG] = DTYPES[dtype]
     model = AutoModelForCausalLM.from_pretrained(name, **kwargs)
     model.eval().to(device)
     return tok, model
@@ -57,7 +66,16 @@ def encode_all(tok, model, texts, batch_size, max_length, device):
         del out, enc, layer_reps, rep
         if device.startswith("cuda"):
             torch.cuda.empty_cache()
-    return torch.cat(chunks, dim=0).numpy()
+    reps = torch.cat(chunks, dim=0).numpy()
+    bad = int(np.count_nonzero(~np.isfinite(reps)))
+    if bad:
+        raise RuntimeError(
+            f"{bad} of {reps.size} extracted values are NaN or Inf. This is a dead "
+            "representation, not a weak result -- saving it would feed silent zeros "
+            "into every downstream correlation. Re-run with --dtype float32 if you "
+            "used a reduced precision."
+        )
+    return reps
 
 def main():
     ap=argparse.ArgumentParser(description="Extract layer-wise concept representations.")
@@ -68,6 +86,8 @@ def main():
     ap.add_argument("--languages",nargs="*",default=None)
     ap.add_argument("--prompt-mode",default=None,choices=["bare","neutral"])
     ap.add_argument("--device",default=None,help="e.g. cuda, cuda:0, mps, cpu")
+    ap.add_argument("--dtype",default=DEFAULT_DTYPE,choices=sorted(DTYPES),
+                    help="CUDA compute dtype; float32 is the safe default (see load_model)")
     args=ap.parse_args()
 
     cfg=json.loads(Path(args.config).read_text(encoding="utf-8"))
@@ -93,7 +113,7 @@ def main():
     for key in models:
         name=cfg["models"][key]
         print(f"\n=== {key}: {name} ===")
-        tok,model=load_model(name,device)
+        tok,model=load_model(name,device,args.dtype)
         for lang in langs:
             texts=[templates[lang].format(term=r[lang]) for r in rows]
             reps=encode_all(tok,model,texts,cfg["batch_size"],cfg["max_length"],device)
@@ -101,7 +121,7 @@ def main():
             np.savez_compressed(path, concept_ids=ids, reps=reps.astype(np.float16),
                                 model_key=key, model_name=name, language=lang,
                                 prompt_mode=prompt_mode)
-            print(f"saved {path}  shape={reps.shape}")
+            print(f"saved {path}  shape={reps.shape}  dtype={args.dtype}")
         del model,tok
         gc.collect()
         if device.startswith("cuda"):

@@ -116,3 +116,25 @@ def test_relation_test_reports_nothing_on_random_geometry(null_kind):
         f"{null_kind} null is miscalibrated on random geometry: "
         f"{bad} of {SEEDS} runs at p<=.05 (expected <= {MAX_FALSE_POSITIVES})"
     )
+
+
+def test_no_two_concepts_share_a_surface_form():
+    """A shared string makes two concepts identical by construction.
+
+    `learn` and `study` both carried the Chinese term 学习, so in every Chinese
+    system their representations were byte-identical: a zero distance that says
+    nothing about meaning, sitting inside the RDM that the whole cross-language
+    comparison is built on. Found by QC on the first real extraction, not by
+    reading the benchmark.
+    """
+    for lang in ("en", "zh"):
+        seen = collections.Counter(r[lang].strip() for r in CONCEPTS)
+        dupes = {k: v for k, v in seen.items() if v > 1}
+        assert not dupes, f"{lang} surface forms shared by multiple concepts: {dupes}"
+
+
+def test_every_concept_has_both_languages_and_a_region():
+    for r in CONCEPTS:
+        assert r["en"].strip(), r
+        assert r["zh"].strip(), r
+        assert r["region"].strip(), r

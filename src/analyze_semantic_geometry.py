@@ -76,8 +76,15 @@ def mean_pairwise_jaccard(sets_by_system):
     return scores / max(1, count)
 
 
-def select_layers(layer_rdms, selection_idx, iterations=5):
-    """Select one layer/system using ONLY selection concepts."""
+def select_layers(layer_rdms, selection_idx, iterations=5, min_layer=0):
+    """Select one layer/system using ONLY selection concepts.
+
+    `min_layer` restricts the search to layer >= min_layer. Unconstrained
+    selection maximises cross-system agreement, and on the 2026-09-03 real run
+    that put five of six systems at layers 0-3 of 25 -- XGLM/en at layer 0, the
+    embedding matrix itself. Early-layer agreement is largely lexical, so a
+    constrained re-run is how you tell shared tokenisation from shared meaning.
+    """
     systems = list(layer_rdms)
     chosen = {s: len(layer_rdms[s]) - 1 for s in systems}
     for _ in range(iterations):
@@ -87,6 +94,8 @@ def select_layers(layer_rdms, selection_idx, iterations=5):
             bestp = chosen[s]
             best = -1e9
             for p, d in enumerate(layer_rdms[s]):
+                if p < min_layer:
+                    continue
                 v = tri_vec(sub_rdm(d, selection_idx))
                 score = np.mean([
                     corr(v, tri_vec(sub_rdm(layer_rdms[o][chosen[o]], selection_idx)))
@@ -425,6 +434,8 @@ def main():
     ap.add_argument("--outdir", default="outputs/analysis")
     ap.add_argument("--knn", type=int, default=10)
     ap.add_argument("--selection-frac", type=float, default=0.60)
+    ap.add_argument("--min-layer", type=int, default=0,
+                    help="restrict layer selection to layer >= this (sensitivity analysis)")
     ap.add_argument("--seed", type=int, default=20260903)
     ap.add_argument("--permutations", type=int, default=250)
     ap.add_argument("--bootstrap", type=int, default=500)
@@ -479,7 +490,7 @@ def main():
     }
 
     # Layer selection sees ONLY the selection concepts.
-    chosen = select_layers(layer_rdms, selection_idx)
+    chosen = select_layers(layer_rdms, selection_idx, min_layer=args.min_layer)
     selected = {s: layer_rdms[s][chosen[s]] for s in reps}
 
     # Primary pairwise alignment is HELD OUT.
@@ -751,6 +762,7 @@ def main():
         "selection_concepts": int(len(selection_idx)),
         "evaluation_concepts": int(len(eval_idx)),
         "selection_fraction": args.selection_frac,
+        "min_layer": args.min_layer,
         "relations": len(rel_rows),
         "relation_types": sorted(relpairs_all),
         "knn": args.knn,

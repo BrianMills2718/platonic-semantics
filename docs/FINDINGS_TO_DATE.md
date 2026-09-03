@@ -1,10 +1,39 @@
 # FINDINGS TO DATE
 
-## There are currently NO real pretrained-model findings from this project
+## Run 001 happened on 2026-09-03
 
-No Qwen/BLOOM/XGLM real-weight result is contained in this handoff.
+Superseding this document's previous headline, which said no real
+pretrained-model result existed. One now does. Full write-up in
+`RUN_001_RESULTS.md`, preserved outputs in `../results/run_001/`.
 
-Synthetic tensors were used only to confirm that the code path can:
+Verdict against `RESULT_INTERPRETATION_PROTOCOL.md`: **Tier 1** — systems share
+some concept organization; reusable cross-system semantic transformations are
+not established.
+
+- Held-out cross-system RDM agreement beat an identity-permutation null in
+  **14 of 15** system pairs (mean rho 0.273), and in **10 of 15** when layer
+  selection was restricted away from the embedding and early layers
+  (mean rho 0.190). The effect shrinks by about a third and does not vanish.
+- Held-out neighbourhood stability: 0.2095 vs a 0.0661 null (z=61.7); 0.1402 vs
+  0.0662 (z=32.3) under the restricted-layer re-analysis.
+- **Unconstrained layer selection chose layers 0-3 for five of six systems**,
+  and layer 0 — the embedding matrix — for XGLM/en. This was named as a risk in
+  the README before the run and it happened, which is why the restricted re-run
+  is the load-bearing number.
+- Splitting by depth separates the pairs **by language, not by model**: all
+  three Chinese cross-model pairs hold at depth (0.45, 0.40, 0.25, all q=0.003)
+  while two of three English pairs lose significance. Unexpected, and a lead
+  rather than a result.
+- Only **IsA** survives the region-matched null and FDR among relations
+  (q=0.020). Within a system relations do behave consistently; across systems
+  they largely do not.
+- No non-neural baseline has been run, so none of this is yet separated from the
+  trivial explanation.
+
+## Instrument findings
+
+Before run 001, synthetic tensors were used only to confirm that the code path
+can:
 - accept different hidden dimensions;
 - select layers;
 - construct RDM consensus;
@@ -26,10 +55,9 @@ The cited literature supports investigating:
 
 See `REFERENCES.md`.
 
-## The one measured finding so far
+## The null defect, found before run 001
 
-It is about the instrument, not about semantic space, and it is the only
-quantitative result this project has produced.
+This one is about the instrument, not about semantic space.
 
 The relation test was a target-reuse detector. `random_target_pairs()` drew each
 null pair's replacement target independently, which destroyed the target reuse

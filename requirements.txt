@@ -1,7 +1,12 @@
 numpy>=1.26
 pandas>=2.0
 scipy>=1.11
-torch>=2.2
+# >=2.6, not >=2.2: facebook/xglm-564M ships only a PyTorch .bin checkpoint
+# (no safetensors), and transformers 5.x refuses torch.load below 2.6 over
+# CVE-2025-32434. On torch 2.5.1 the other two models extract fine and XGLM
+# dies at load, which silently reduces the design from three model families
+# to two. Observed 2026-09-03.
+torch>=2.6
 transformers>=4.45
 sentencepiece>=0.2
 safetensors>=0.4

@@ -4,9 +4,17 @@ Do independently trained language models, in different languages, arrive at the
 same *shape* of semantic space — and do labelled semantic relations behave like
 reusable transformations inside it?
 
-This repository is the experiment, not an answer. **No pretrained model has been
-run yet.** Every result file the pipeline can produce is hypothetical until the
-first real run happens.
+Run 001 happened on 2026-09-03. Short answer: **partly, and less than the raw
+numbers suggest.** Held-out geometry beat its null in 14 of 15 system pairs, but
+unconstrained layer selection had parked five of six systems in the embedding
+and early layers; restricting to depth leaves 10 of 15 and cuts the effect by a
+third. Only one relation, `IsA`, survives its null and FDR correction.
+
+Read `docs/RUN_001_RESULTS.md` for the full write-up, including a finding that
+was not expected: at depth the systems separate **by language, not by model**.
+
+No non-neural baseline exists yet, so none of this is separated from the trivial
+explanation. Treat it as a lead.
 
 Part of a wider set of "platonic" projects; the mathematics side lives in
 [`platonic-atlas-math`](https://github.com/BrianMills2718/platonic-atlas-math).
