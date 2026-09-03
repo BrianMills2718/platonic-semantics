@@ -67,6 +67,15 @@ and every early layer, the effect shrinks by roughly a third and **does not
 vanish**: 10 of 15 pairs still beat the null, and neighbourhood stability still
 clears it at z=32. The convergence is not purely lexical.
 
+One correction to how that run should be described. Restricting selection to
+layer >= 8 did not land it at mid-depth: it chose **layer 24, the final layer**,
+for five of six systems (XGLM/en took layer 12). That follows from the layer
+curve, which is U-shaped for BLOOM and Qwen -- agreement is high at layer 1,
+collapses through the middle, and recovers at the end. So the contrast is
+really *first layers versus last layers*, with the middle of these models
+agreeing least. Calling it a "depth" result would overstate it, and a proper
+sweep across several `--min-layer` values is the honest version of this check.
+
 ## The finding that was not expected
 
 Restricting to depth splits the pairs cleanly by language, not by model:
@@ -122,6 +131,25 @@ Within a system, relations do behave like consistent transformations —
 in 6 of 6 systems. What does not replicate is the same transformation appearing
 in *different* systems.
 
+The relation picture is **stable under the layer re-analysis**, which is the
+strongest thing that can be said for it. Exactly one relation survives in both
+configurations, and `IsA` gets slightly stronger rather than weaker when the
+early layers are excluded:
+
+| relation | effect over null (free) | q | effect over null (last layers) | q |
+|---|---|---|---|---|
+| **IsA** | 0.230 | **0.020** | **0.251** | **0.020** |
+| AtLocation | 0.058 | 0.095 | 0.038 | 0.487 |
+| UsedFor | -0.003 | 0.994 | 0.034 | 0.353 |
+| PartOf | 0.037 | 0.684 | 0.022 | 0.769 |
+| HasProperty | 0.016 | 0.113 | 0.019 | 0.353 |
+| everything else | <= 0 | ~1.0 | <= 0 | ~0.86 |
+
+So `IsA` is not an embedding-layer artefact. It is also the relation whose
+targets are a coherent set of superordinates (`mammal`, `tool`, `metal`,
+`emotion`...), and the region-matched null only partly controls for that. One
+relation out of ten, in one pilot, is a lead.
+
 ## What this does not show
 
 - Not a Platonic semantic space, not a language-independent internal language.
@@ -138,6 +166,8 @@ in *different* systems.
 
 1. A fastText EN/ZH baseline and a lexical-confound RDM (token length,
    frequency). Without it the headline is not falsifiable.
-2. Re-run at several `--min-layer` values rather than one, and report the curve.
+2. Sweep `--min-layer` across several values and report the curve. The single
+   cutoff used here resolved to the final layer for most systems, so it tests
+   first-vs-last rather than depth.
 3. Prompt-averaged representations instead of bare words.
 4. Fix or exclude the six XGLM `<unk>` concepts.

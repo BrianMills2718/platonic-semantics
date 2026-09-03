@@ -24,9 +24,14 @@ not established.
   three Chinese cross-model pairs hold at depth (0.45, 0.40, 0.25, all q=0.003)
   while two of three English pairs lose significance. Unexpected, and a lead
   rather than a result.
-- Only **IsA** survives the region-matched null and FDR among relations
-  (q=0.020). Within a system relations do behave consistently; across systems
-  they largely do not.
+- Only **IsA** survives the region-matched null and FDR among relations, and it
+  survives in *both* layer configurations (q=0.020 each), with its effect over
+  the null rising from 0.230 to 0.251 when early layers are excluded — so it is
+  not an embedding artefact. Within a system relations do behave consistently;
+  across systems they largely do not.
+- The restricted-layer re-analysis selected the **final** layer for five of six
+  systems, not a mid-depth one. These models agree most at their first and last
+  layers and least in the middle.
 - No non-neural baseline has been run, so none of this is yet separated from the
   trivial explanation.
 
