@@ -1,0 +1,6 @@
+# Analysis + tests only. Deliberately excludes torch/transformers so the
+# statistical calibration suite runs in CI in seconds without a GPU image.
+numpy>=1.26
+pandas>=2.0
+scipy>=1.11
+pytest>=8.0

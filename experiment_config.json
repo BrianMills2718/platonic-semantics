@@ -1,0 +1,25 @@
+{
+  "models": {
+    "qwen25_05b": "Qwen/Qwen2.5-0.5B",
+    "bloom_560m": "bigscience/bloom-560m",
+    "xglm_564m": "facebook/xglm-564M"
+  },
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "prompt_modes": {
+    "bare": {
+      "en": "{term}",
+      "zh": "{term}"
+    },
+    "neutral": {
+      "en": "The concept is {term}.",
+      "zh": "这个概念是{term}。"
+    }
+  },
+  "default_prompt_mode": "bare",
+  "batch_size": 16,
+  "max_length": 32,
+  "knn": 10
+}

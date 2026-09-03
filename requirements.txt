@@ -1,0 +1,8 @@
+numpy>=1.26
+pandas>=2.0
+scipy>=1.11
+torch>=2.2
+transformers>=4.45
+sentencepiece>=0.2
+safetensors>=0.4
+plotly>=5.20

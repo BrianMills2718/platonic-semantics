@@ -1,0 +1,49 @@
+{
+  "version": "0.1",
+  "concept": {
+    "id": "stable concept identifier",
+    "label": "canonical display label",
+    "aliases": {
+      "en": [],
+      "zh": [],
+      "es": [],
+      "ar": []
+    },
+    "external_ids": {
+      "wikidata": null,
+      "wordnet": null,
+      "conceptnet": null
+    },
+    "region_hint": "optional interpretive label only"
+  },
+  "stimulus": {
+    "concept_id": "concept identifier",
+    "language": "language code",
+    "surface_form": "matched prompt / phrase / description",
+    "modality": "text/image/audio/formal/etc.",
+    "equivalence_group": "same intended concept/event across languages/modalities"
+  },
+  "representation": {
+    "concept_id": "concept identifier",
+    "model_id": "model",
+    "language": "language code",
+    "layer": "layer index or pooled representation level",
+    "vector_ref": "optional raw vector reference",
+    "rdm_ref": "preferred derived pairwise-distance reference"
+  },
+  "derived": {
+    "consensus_distance": "pairwise distance that persists across systems",
+    "model_stability": "cross-model neighborhood preservation",
+    "language_stability": "cross-language neighborhood preservation",
+    "modality_stability": "cross-modality neighborhood preservation",
+    "uncertainty": "agreement/coverage uncertainty",
+    "projection_xy": "display-only 2D coordinates"
+  },
+  "semantic_overlay_edge": {
+    "source": "concept id",
+    "target": "concept id",
+    "type": "is_a/part_of/causes/opposite/similar/used_for/lives_in/etc.",
+    "source_dataset": "WordNet/ConceptNet/Wikidata/manual/etc.",
+    "note": "overlay aids interpretation; it does not define latent geometry"
+  }
+}

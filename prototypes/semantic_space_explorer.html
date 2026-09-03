@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Semantic Space Explorer</title>
+<style>
+:root{
+  --bg:#f5f6f8;--panel:#fff;--ink:#17191d;--muted:#687080;--line:#dde2e7;
+  --accent:#2563eb;--soft:#eaf1ff;--warn:#c2410c;--ok:#15803d;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select{font:inherit}
+button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 10px;cursor:pointer}
+button:hover{background:#f8fafc}
+button.active{border-color:var(--accent);background:var(--soft);color:#173d91}
+.app{min-height:100vh;display:flex;flex-direction:column}
+.topbar{background:#fff;border-bottom:1px solid var(--line);padding:11px 16px;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.brandmark{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-weight:800}
+.title{font-size:17px;font-weight:800}
+.subtitle{font-size:11px;color:var(--muted);margin-top:2px}
+.top-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.pill{font-size:11px;color:#475467;border:1px solid var(--line);padding:5px 8px;border-radius:999px;background:#fff}
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr) 330px;gap:12px;padding:12px;flex:1}
+.panel{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.025)}
+.sidebar,.inspector{padding:14px;overflow:auto}
+.section{padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--line)}
+.section:last-child{border-bottom:0;margin-bottom:0}
+h3{margin:0 0 9px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#475467}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mode-grid button{font-size:12px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:11px}
+.field label{font-size:12px;color:#475467;font-weight:650}
+.field select,.field input[type=text]{border:1px solid var(--line);border-radius:9px;padding:9px 10px;background:#fff}
+.slider-row{display:flex;align-items:center;gap:8px}
+.slider-row input{width:100%}
+.mini{font-size:11px;color:var(--muted)}
+.checks{display:flex;flex-direction:column;gap:7px}
+.check{display:flex;align-items:center;gap:8px;font-size:12px;color:#344054}
+.check input{width:16px;height:16px}
+.swatch{width:9px;height:9px;border-radius:3px;display:inline-block}
+.callout{border:1px solid var(--line);background:#f8fafc;border-radius:10px;padding:10px;color:#475467;font-size:11px;line-height:1.45}
+.main{display:grid;grid-template-rows:minmax(560px,1fr) auto;gap:12px;min-width:0}
+.map-card{display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.map-head{padding:13px 14px 8px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.map-head h2{margin:0;font-size:18px}
+.map-head p{margin:4px 0 0;font-size:11px;color:var(--muted)}
+.toolbar{display:flex;gap:6px}
+.map-wrap{position:relative;flex:1;min-height:500px;padding:0 8px 8px}
+#map{width:100%;height:100%;min-height:500px;display:block;background:#fff;border-radius:9px}
+.tooltip{position:absolute;z-index:3;pointer-events:none;background:#111827;color:#fff;border-radius:8px;padding:8px 9px;font-size:11px;max-width:250px;opacity:0;transform:translate(10px,10px)}
+.bottom{display:grid;grid-template-columns:1.2fr .8fr;gap:12px}
+.bottom .panel{padding:13px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.metric{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fafbfc}
+.metric .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.metric .v{font-size:21px;font-weight:800;margin-top:3px}
+.inspector h2{margin:0 0 4px;font-size:19px}
+.kind{font-size:11px;color:var(--muted)}
+.score{border:1px solid var(--line);border-radius:10px;padding:10px;margin:10px 0;background:#fafbfc}
+.scorebar{height:7px;border-radius:999px;background:#e9edf2;overflow:hidden;margin-top:6px}
+.scorebar span{display:block;height:100%;background:var(--accent)}
+.kv{display:grid;grid-template-columns:128px 1fr;gap:7px 9px;font-size:12px;margin:13px 0}
+.kv div:nth-child(odd){color:var(--muted)}
+.list{display:flex;flex-direction:column;gap:7px}
+.item{display:grid;grid-template-columns:1fr auto;gap:10px;font-size:12px}
+.edge-tag{font-size:10px;border:1px solid var(--line);border-radius:999px;padding:2px 6px;color:#475467}
+.footer{background:#fff;border-top:1px solid var(--line);padding:8px 14px;color:var(--muted);font-size:10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+@media(max-width:1120px){.layout{grid-template-columns:230px minmax(0,1fr)}.inspector{grid-column:1/-1}}
+@media(max-width:760px){.layout{display:block}.sidebar,.main,.inspector{margin-bottom:12px}.bottom{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="topbar">
+  <div class="brand">
+    <div class="brandmark">S</div>
+    <div>
+      <div class="title">Semantic Space Explorer</div>
+      <div class="subtitle">An atlas of structure that persists across models, languages, and representations</div>
+    </div>
+  </div>
+  <div class="top-actions">
+    <span class="pill">Prototype data: synthetic geometry</span>
+    <button id="reset">Reset</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="panel sidebar">
+    <div class="section">
+      <h3>Geometry view</h3>
+      <div class="mode-grid">
+        <button class="mode active" data-mode="consensus">Consensus</button>
+        <button class="mode" data-mode="model">One model</button>
+        <button class="mode" data-mode="language">Language residual</button>
+        <button class="mode" data-mode="disagreement">Disagreement</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Probe</h3>
+      <div class="field">
+        <label for="model">Model</label>
+        <select id="model">
+          <option value="llama">Llama-like</option>
+          <option value="qwen">Qwen-like</option>
+          <option value="mistral">Mistral-like</option>
+          <option value="multi">Multilingual encoder</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="language">Language</label>
+        <select id="language">
+          <option value="en">English</option>
+          <option value="zh">Chinese</option>
+          <option value="es">Spanish</option>
+          <option value="ar">Arabic</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Morph consensus → selected model</h3>
+      <div class="slider-row">
+        <span class="mini">C</span>
+        <input id="morph" type="range" min="0" max="100" value="0">
+        <span class="mini">M</span>
+      </div>
+      <div class="mini">Interpolation: <span id="morphVal">0%</span></div>
+    </div>
+
+    <div class="section">
+      <h3>Semantic relation overlays</h3>
+      <div id="relationChecks" class="checks"></div>
+    </div>
+
+    <div class="section">
+      <h3>Explore</h3>
+      <div class="field">
+        <label for="search">Search concept</label>
+        <input id="search" type="text" placeholder="dog, justice, gravity…">
+      </div>
+      <div class="field">
+        <label for="region">Broad region</label>
+        <select id="region"><option value="all">All regions</option></select>
+      </div>
+      <div class="field">
+        <label for="minStability">Minimum cross-model stability</label>
+        <input id="minStability" type="range" min="0" max="1" step="0.01" value="0">
+        <div class="mini">Threshold: <span id="minStabilityVal">0.00</span></div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <b>Core idea:</b> the map itself comes from model geometry. Taxonomies and knowledge graphs are optional overlays that help us interpret it; they do not define the latent space.
+    </div>
+  </aside>
+
+  <main class="main">
+    <section class="panel map-card">
+      <div class="map-head">
+        <div>
+          <h2 id="viewTitle">Cross-model semantic consensus</h2>
+          <p id="viewDesc">Concept positions summarize structure that survives across the demo models and languages.</p>
+        </div>
+        <div class="toolbar">
+          <button id="zoomIn">＋</button>
+          <button id="zoomOut">−</button>
+          <button id="fit">Fit</button>
+        </div>
+      </div>
+      <div class="map-wrap">
+        <svg id="map" viewBox="0 0 1000 620" aria-label="Interactive semantic space map"></svg>
+        <div id="tooltip" class="tooltip"></div>
+      </div>
+    </section>
+
+    <div class="bottom">
+      <section class="panel">
+        <h3>Current slice</h3>
+        <div class="metrics">
+          <div class="metric"><div class="k">Concepts visible</div><div class="v" id="visibleCount">—</div><div class="mini">after filters</div></div>
+          <div class="metric"><div class="k">Model stability</div><div class="v" id="modelStab">—</div><div class="mini">neighborhood persistence</div></div>
+          <div class="metric"><div class="k">Language stability</div><div class="v" id="langStab">—</div><div class="mini">cross-language persistence</div></div>
+          <div class="metric"><div class="k">Consensus confidence</div><div class="v" id="consConf">—</div><div class="mini">synthetic demo score</div></div>
+        </div>
+      </section>
+      <section class="panel">
+        <h3>How to read this view</h3>
+        <div id="explain" class="callout"></div>
+      </section>
+    </div>
+  </main>
+
+  <aside class="panel inspector">
+    <h3>Concept inspector</h3>
+    <div id="emptyInspect" class="callout">Click a concept to compare its consensus neighborhood with the selected model/language representation.</div>
+    <div id="inspect" style="display:none">
+      <h2 id="conceptName"></h2>
+      <div id="conceptRegion" class="kind"></div>
+
+      <div class="score">
+        <div class="mini">Cross-model neighborhood stability</div>
+        <div style="font-size:27px;font-weight:800" id="localModelStab">—</div>
+        <div class="scorebar"><span id="localModelBar"></span></div>
+      </div>
+
+      <div class="score">
+        <div class="mini">Cross-language neighborhood stability</div>
+        <div style="font-size:27px;font-weight:800" id="localLangStab">—</div>
+        <div class="scorebar"><span id="localLangBar"></span></div>
+      </div>
+
+      <div class="kv">
+        <div>Selected model</div><div id="inspectModel">—</div>
+        <div>Selected language</div><div id="inspectLang">—</div>
+        <div>Agreement region</div><div id="agreementBand">—</div>
+        <div>Overlay degree</div><div id="overlayDegree">—</div>
+      </div>
+
+      <h3>Consensus nearest neighbors</h3>
+      <div id="consensusList" class="list"></div>
+
+      <h3 style="margin-top:15px">Selected model/language neighbors</h3>
+      <div id="modelList" class="list"></div>
+
+      <h3 style="margin-top:15px">Semantic overlay relations</h3>
+      <div id="relationList" class="list"></div>
+    </div>
+  </aside>
+</div>
+
+<footer class="footer">
+  <span>Standalone prototype · no external libraries</span>
+  <span>Designed for real hidden-state / embedding distance matrices</span>
+</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+const concepts=[
+ {id:"dog",name:"dog",region:"Living things",c:[215,220]},
+ {id:"wolf",name:"wolf",region:"Living things",c:[170,175]},
+ {id:"cat",name:"cat",region:"Living things",c:[245,175]},
+ {id:"animal",name:"animal",region:"Living things",c:[190,285]},
+ {id:"bird",name:"bird",region:"Living things",c:[125,245]},
+ {id:"tree",name:"tree",region:"Living things",c:[310,300]},
+ {id:"plant",name:"plant",region:"Living things",c:[345,255]},
+ {id:"forest",name:"forest",region:"Nature",c:[305,185]},
+ {id:"river",name:"river",region:"Nature",c:[385,145]},
+ {id:"ocean",name:"ocean",region:"Nature",c:[465,120]},
+ {id:"mountain",name:"mountain",region:"Nature",c:[365,85]},
+ {id:"earth",name:"Earth",region:"Nature",c:[465,205]},
+ {id:"city",name:"city",region:"Society",c:[545,165]},
+ {id:"country",name:"country",region:"Society",c:[595,135]},
+ {id:"family",name:"family",region:"Society",c:[565,250]},
+ {id:"friend",name:"friend",region:"Society",c:[630,245]},
+ {id:"democracy",name:"democracy",region:"Society",c:[665,175]},
+ {id:"justice",name:"justice",region:"Abstract / social",c:[735,210]},
+ {id:"law",name:"law",region:"Abstract / social",c:[720,150]},
+ {id:"freedom",name:"freedom",region:"Abstract / social",c:[790,255]},
+ {id:"love",name:"love",region:"Mind / emotion",c:[770,355]},
+ {id:"fear",name:"fear",region:"Mind / emotion",c:[860,355]},
+ {id:"anger",name:"anger",region:"Mind / emotion",c:[900,405]},
+ {id:"memory",name:"memory",region:"Mind / emotion",c:[750,420]},
+ {id:"belief",name:"belief",region:"Mind / emotion",c:[680,390]},
+ {id:"attention",name:"attention",region:"Mind / emotion",c:[700,465]},
+ {id:"time",name:"time",region:"Abstract",c:[545,395]},
+ {id:"cause",name:"cause",region:"Abstract",c:[575,465]},
+ {id:"number",name:"number",region:"Abstract / math",c:[420,470]},
+ {id:"symmetry",name:"symmetry",region:"Abstract / math",c:[450,535]},
+ {id:"infinity",name:"infinity",region:"Abstract / math",c:[360,545]},
+ {id:"language",name:"language",region:"Communication",c:[290,440]},
+ {id:"word",name:"word",region:"Communication",c:[250,485]},
+ {id:"story",name:"story",region:"Communication",c:[225,550]},
+ {id:"music",name:"music",region:"Communication",c:[320,580]},
+ {id:"tool",name:"tool",region:"Artifacts / technology",c:[510,520]},
+ {id:"machine",name:"machine",region:"Artifacts / technology",c:[590,555]},
+ {id:"computer",name:"computer",region:"Artifacts / technology",c:[670,535]},
+ {id:"robot",name:"robot",region:"Artifacts / technology",c:[745,540]},
+ {id:"whale",name:"whale",region:"Living things",c:[105,145]},
+ {id:"dolphin",name:"dolphin",region:"Living things",c:[85,195]},
+ {id:"gravity",name:"gravity",region:"Physical world",c:[465,325]},
+ {id:"energy",name:"energy",region:"Physical world",c:[400,365]},
+ {id:"matter",name:"matter",region:"Physical world",c:[355,400]},
+ {id:"star",name:"star",region:"Physical world",c:[515,285]},
+ {id:"planet",name:"planet",region:"Physical world",c:[540,335]}
+];
+
+const relations=[
+ ["dog","animal","is_a"],["wolf","animal","is_a"],["cat","animal","is_a"],["bird","animal","is_a"],
+ ["whale","animal","is_a"],["dolphin","animal","is_a"],["tree","plant","is_a"],["forest","tree","contains"],
+ ["river","ocean","flows_to"],["earth","planet","is_a"],["star","planet","associated"],
+ ["city","country","part_of"],["family","friend","associated"],["democracy","freedom","associated"],
+ ["law","justice","associated"],["fear","anger","associated"],["love","friend","associated"],
+ ["belief","memory","associated"],["attention","memory","associated"],["cause","time","associated"],
+ ["number","infinity","associated"],["number","symmetry","associated"],["word","language","part_of"],
+ ["story","language","part_of"],["music","language","analogous"],["tool","machine","constructs"],
+ ["machine","computer","is_a"],["robot","machine","is_a"],["gravity","planet","acts_on"],
+ ["energy","matter","associated"],["star","energy","associated"],["whale","ocean","lives_in"],
+ ["dolphin","ocean","lives_in"],["dog","wolf","similar"],["whale","dolphin","similar"]
+];
+
+const relLabels={
+ is_a:"is-a",contains:"contains",flows_to:"flows to",associated:"associated",
+ part_of:"part-of",analogous:"analogous",constructs:"constructs",acts_on:"acts on",
+ lives_in:"lives in",similar:"similar"
+};
+const relColors={
+ is_a:"#2563eb",contains:"#64748b",flows_to:"#0891b2",associated:"#94a3b8",
+ part_of:"#7c3aed",analogous:"#d97706",constructs:"#0f766e",acts_on:"#be123c",
+ lives_in:"#15803d",similar:"#4f46e5"
+};
+const regionColors={
+ "Living things":"#15803d","Nature":"#65a30d","Society":"#be123c","Abstract / social":"#c2410c",
+ "Mind / emotion":"#7c3aed","Abstract":"#64748b","Abstract / math":"#2563eb",
+ "Communication":"#d97706","Artifacts / technology":"#0891b2","Physical world":"#4f46e5"
+};
+
+const modelNames={llama:"Llama-like",qwen:"Qwen-like",mistral:"Mistral-like",multi:"Multilingual encoder"};
+const langNames={en:"English",zh:"Chinese",es:"Spanish",ar:"Arabic"};
+
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function rand(seed){let x=seed>>>0;x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)/4294967295}
+function modelPos(o,model,lang){
+  const seed=hash(o.id+"|"+model+"|"+lang);
+  let dx=(rand(seed)-.5)*90,dy=(rand(seed^0x9e3779b9)-.5)*78;
+  const pulls={
+    "Living things":[-8,-8],"Nature":[2,-10],"Society":[12,-4],
+    "Abstract / social":[18,4],"Mind / emotion":[15,14],"Abstract":[2,12],
+    "Abstract / math":[-8,16],"Communication":[-14,12],
+    "Artifacts / technology":[8,18],"Physical world":[0,3]
+  }[o.region]||[0,0];
+  dx+=pulls[0];dy+=pulls[1];
+  if(model==="qwen"){dx*=.82;dy*=1.05}
+  if(model==="mistral"){dx*=1.05;dy*=.86}
+  if(model==="multi"){dx*=.62;dy*=.68}
+  if(lang==="zh"){dx+=8*Math.sin(seed%9);dy-=5}
+  if(lang==="es"){dx-=6;dy+=5*Math.cos(seed%7)}
+  if(lang==="ar"){dx+=5;dy+=8*Math.sin(seed%5)}
+  return [o.c[0]+dx,o.c[1]+dy];
+}
+function consensusPos(o){
+  const ps=[];
+  ["llama","qwen","mistral","multi"].forEach(m=>["en","zh","es","ar"].forEach(l=>ps.push(modelPos(o,m,l))));
+  return [ps.reduce((a,p)=>a+p[0],0)/ps.length,ps.reduce((a,p)=>a+p[1],0)/ps.length];
+}
+function modelStability(o){
+  const ps=["llama","qwen","mistral","multi"].map(m=>modelPos(o,m,"en"));
+  let d=0,n=0;
+  for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){d+=Math.hypot(ps[i][0]-ps[j][0],ps[i][1]-ps[j][1]);n++}
+  return Math.max(.4,Math.min(.97,.96-(d/n)/260));
+}
+function languageStability(o,model){
+  const ps=["en","zh","es","ar"].map(l=>modelPos(o,model,l));
+  let d=0,n=0;
+  for(let i=0;i<ps.length;i++)for(let j=i+1;j<ps.length;j++){d+=Math.hypot(ps[i][0]-ps[j][0],ps[i][1]-ps[j][1]);n++}
+  return Math.max(.4,Math.min(.98,.97-(d/n)/240));
+}
+function disagreement(o){
+  return 1-modelStability(o)*.55-languageStability(o,"multi")*.45+1;
+}
+function confidence(o){
+  return Math.max(.42,Math.min(.97,.5*modelStability(o)+.5*languageStability(o,"multi")));
+}
+
+const state={mode:"consensus",model:"llama",lang:"en",morph:0,selected:null,zoom:1,panX:0,panY:0,drag:null,relations:new Map()};
+Object.keys(relLabels).forEach(k=>state.relations.set(k,false));
+state.relations.set("is_a",true);state.relations.set("similar",true);
+
+const svg=document.getElementById("map"),tooltip=document.getElementById("tooltip");
+const modelSel=document.getElementById("model"),langSel=document.getElementById("language"),morph=document.getElementById("morph");
+const search=document.getElementById("search"),region=document.getElementById("region"),minStability=document.getElementById("minStability");
+
+[...new Set(concepts.map(o=>o.region))].sort().forEach(r=>{const op=document.createElement("option");op.value=r;op.textContent=r;region.appendChild(op)});
+
+const relationChecks=document.getElementById("relationChecks");
+Object.entries(relLabels).forEach(([k,label])=>{
+  const lab=document.createElement("label");lab.className="check";
+  const cb=document.createElement("input");cb.type="checkbox";cb.checked=state.relations.get(k);
+  const sw=document.createElement("span");sw.className="swatch";sw.style.background=relColors[k];
+  const tx=document.createElement("span");tx.textContent=label;
+  cb.addEventListener("change",()=>{state.relations.set(k,cb.checked);render()});
+  lab.append(cb,sw,tx);relationChecks.appendChild(lab);
+});
+
+function effectivePos(o){
+  const c=consensusPos(o),m=modelPos(o,state.model,state.lang);
+  if(state.mode==="consensus"){
+    const t=state.morph/100;
+    return [c[0]*(1-t)+m[0]*t,c[1]*(1-t)+m[1]*t];
+  }
+  if(state.mode==="model")return m;
+  if(state.mode==="language")return modelPos(o,state.model,"en");
+  if(state.mode==="disagreement")return c;
+  return c;
+}
+function transformed(p){const cx=500,cy=310;return [(p[0]-cx)*state.zoom+cx+state.panX,(p[1]-cy)*state.zoom+cy+state.panY]}
+function visibleConcepts(){
+  const q=search.value.trim().toLowerCase(),r=region.value,min=Number(minStability.value);
+  return concepts.filter(o=>(r==="all"||o.region===r)&&(!q||o.name.toLowerCase().includes(q))&&modelStability(o)>=min);
+}
+function el(name,attrs={}){const e=document.createElementNS("http://www.w3.org/2000/svg",name);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));return e}
+function render(){
+  svg.innerHTML="";
+  const defs=el("defs");
+  const arrow=el("marker",{id:"arrow",viewBox:"0 0 10 10",refX:"9",refY:"5",markerWidth:"6",markerHeight:"6",orient:"auto-start-reverse"});
+  arrow.appendChild(el("path",{d:"M0 0 L10 5 L0 10 z",fill:"#c2410c"}));defs.appendChild(arrow);svg.appendChild(defs);
+
+  const visible=new Set(visibleConcepts().map(o=>o.id));
+
+  // region labels based on consensus rough centers
+  const rs={};
+  visibleConcepts().forEach(o=>{const p=effectivePos(o);rs[o.region]=rs[o.region]||{x:0,y:0,n:0};rs[o.region].x+=p[0];rs[o.region].y+=p[1];rs[o.region].n++});
+  Object.entries(rs).forEach(([name,v])=>{
+    const p=transformed([v.x/v.n,v.y/v.n-35]);const t=el("text",{x:p[0],y:p[1],fill:"#a3aab5","font-size":"11","font-weight":"700","text-anchor":"middle"});
+    t.textContent=name.toUpperCase();svg.appendChild(t);
+  });
+
+  relations.forEach(([a,b,type])=>{
+    if(!state.relations.get(type)||!visible.has(a)||!visible.has(b))return;
+    const oa=concepts.find(o=>o.id===a),ob=concepts.find(o=>o.id===b);
+    const pa=transformed(effectivePos(oa)),pb=transformed(effectivePos(ob));
+    svg.appendChild(el("line",{x1:pa[0],y1:pa[1],x2:pb[0],y2:pb[1],stroke:relColors[type],"stroke-width":"1.5","stroke-opacity":".45"}));
+  });
+
+  if(state.mode==="language"){
+    visibleConcepts().forEach(o=>{
+      const a=transformed(modelPos(o,state.model,"en")),b=transformed(modelPos(o,state.model,state.lang));
+      svg.appendChild(el("line",{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:"#c2410c","stroke-width":"1.3","stroke-opacity":".65","marker-end":"url(#arrow)"}));
+      svg.appendChild(el("circle",{cx:b[0],cy:b[1],r:"4.5",fill:"none",stroke:"#c2410c","stroke-width":"1.2","stroke-dasharray":"3 2"}));
+    });
+  }
+
+  visibleConcepts().forEach(o=>{
+    const p=transformed(effectivePos(o));
+    const g=el("g",{tabindex:"0","data-id":o.id,style:"cursor:pointer"});
+    const selected=state.selected&&state.selected.id===o.id;
+    const conf=confidence(o),dis=1-conf;
+    let r=selected?10:7+(state.mode==="disagreement"?dis*9:conf*2.5);
+    const fill=regionColors[o.region]||"#475467";
+    const c=el("circle",{cx:p[0],cy:p[1],r:r,fill:fill,stroke:selected?"#111827":"#fff","stroke-width":selected?"3":"1.5","fill-opacity":state.mode==="disagreement"?.55+.45*dis:.78});
+    const t=el("text",{x:p[0]+12,y:p[1]+4,fill:"#20242a","font-size":"11","font-weight":selected?"750":"600"});
+    t.textContent=o.name;
+    g.append(c,t);
+    g.addEventListener("mouseenter",e=>showTip(e,o));
+    g.addEventListener("mouseleave",hideTip);
+    g.addEventListener("click",e=>{e.stopPropagation();inspect(o)});
+    g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();inspect(o)}});
+    svg.appendChild(g);
+  });
+
+  updateMetrics();
+}
+function showTip(evt,o){
+  const r=document.querySelector(".map-wrap").getBoundingClientRect();
+  tooltip.style.left=(evt.clientX-r.left)+"px";tooltip.style.top=(evt.clientY-r.top)+"px";tooltip.style.opacity="1";
+  tooltip.innerHTML="<b>"+escapeHTML(o.name)+"</b><br>"+escapeHTML(o.region)+"<br>model stability "+Math.round(modelStability(o)*100)+"% · language stability "+Math.round(languageStability(o,state.model)*100)+"%";
+}
+function hideTip(){tooltip.style.opacity="0"}
+function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
+function nearest(o,fn,k=5){
+  const p=fn(o);
+  return concepts.filter(x=>x.id!==o.id).map(x=>{const q=fn(x);return {o:x,d:Math.hypot(p[0]-q[0],p[1]-q[1])}}).sort((a,b)=>a.d-b.d).slice(0,k);
+}
+function relationNeighbors(o){
+  return relations.filter(e=>e[0]===o.id||e[1]===o.id).map(e=>({o:concepts.find(x=>x.id===(e[0]===o.id?e[1]:e[0])),type:e[2]}));
+}
+function inspect(o){
+  state.selected=o;render();
+  document.getElementById("emptyInspect").style.display="none";document.getElementById("inspect").style.display="block";
+  document.getElementById("conceptName").textContent=o.name;
+  document.getElementById("conceptRegion").textContent=o.region;
+  const ms=modelStability(o),ls=languageStability(o,state.model);
+  document.getElementById("localModelStab").textContent=Math.round(ms*100)+"%";
+  document.getElementById("localLangStab").textContent=Math.round(ls*100)+"%";
+  document.getElementById("localModelBar").style.width=Math.round(ms*100)+"%";
+  document.getElementById("localLangBar").style.width=Math.round(ls*100)+"%";
+  document.getElementById("inspectModel").textContent=modelNames[state.model];
+  document.getElementById("inspectLang").textContent=langNames[state.lang];
+  document.getElementById("agreementBand").textContent=(ms>.82&&ls>.82)?"high":(ms>.68&&ls>.68)?"medium":"low";
+  const rn=relationNeighbors(o);document.getElementById("overlayDegree").textContent=rn.length;
+
+  const cl=document.getElementById("consensusList");cl.innerHTML="";
+  nearest(o,consensusPos).forEach(n=>{const row=document.createElement("div");row.className="item";row.innerHTML="<span>"+escapeHTML(n.o.name)+"</span><span class='mini'>"+n.d.toFixed(1)+"</span>";cl.appendChild(row)});
+  const ml=document.getElementById("modelList");ml.innerHTML="";
+  nearest(o,x=>modelPos(x,state.model,state.lang)).forEach(n=>{const row=document.createElement("div");row.className="item";row.innerHTML="<span>"+escapeHTML(n.o.name)+"</span><span class='mini'>"+n.d.toFixed(1)+"</span>";ml.appendChild(row)});
+  const rl=document.getElementById("relationList");rl.innerHTML="";
+  if(!rn.length)rl.innerHTML='<div class="mini">No demo overlay relations.</div>';
+  rn.forEach(n=>{const row=document.createElement("div");row.className="item";const a=document.createElement("span");a.textContent=n.o.name;const b=document.createElement("span");b.className="edge-tag";b.textContent=relLabels[n.type]||n.type;row.append(a,b);rl.appendChild(row)});
+}
+function average(arr){return arr.reduce((a,b)=>a+b,0)/(arr.length||1)}
+function updateMetrics(){
+  const vs=visibleConcepts();
+  document.getElementById("visibleCount").textContent=vs.length;
+  document.getElementById("modelStab").textContent=Math.round(average(vs.map(modelStability))*100)+"%";
+  document.getElementById("langStab").textContent=Math.round(average(vs.map(o=>languageStability(o,state.model)))*100)+"%";
+  document.getElementById("consConf").textContent=Math.round(average(vs.map(confidence))*100)+"%";
+  const title=document.getElementById("viewTitle"),desc=document.getElementById("viewDesc"),ex=document.getElementById("explain");
+  if(state.mode==="consensus"){
+    title.textContent="Cross-model semantic consensus";
+    desc.textContent="Concept positions summarize structure that survives across the demo models and languages.";
+    ex.innerHTML="<b>Consensus:</b> this is the candidate 'shared semantic space.' In a real pipeline it should be computed from agreement among distance/neighborhood structures, not by assuming raw hidden coordinates line up.";
+  }else if(state.mode==="model"){
+    title.textContent="Selected model / language geometry";
+    desc.textContent=modelNames[state.model]+" · "+langNames[state.lang];
+    ex.innerHTML="<b>One model:</b> inspect how a particular model/language organizes the same concepts, then compare its neighborhoods with consensus.";
+  }else if(state.mode==="language"){
+    title.textContent="Language residuals within one model";
+    desc.textContent="Arrows run from English positions to "+langNames[state.lang]+" positions for "+modelNames[state.model]+".";
+    ex.innerHTML="<b>Language residual:</b> short arrows suggest language-invariant representation; coherent long shifts show where linguistic form still matters.";
+  }else{
+    title.textContent="Cross-model disagreement landscape";
+    desc.textContent="Point size/opacity emphasize concepts whose neighborhoods are least stable across systems.";
+    ex.innerHTML="<b>Disagreement:</b> this is as important as the consensus. Unstable regions tell you where a proposed universal semantic geometry is weak or model-dependent.";
+  }
+}
+function setMode(m){
+  state.mode=m;document.querySelectorAll(".mode").forEach(b=>b.classList.toggle("active",b.dataset.mode===m));
+  morph.disabled=m!=="consensus";render();
+}
+document.querySelectorAll(".mode").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
+modelSel.addEventListener("change",()=>{state.model=modelSel.value;if(state.selected)inspect(state.selected);else render()});
+langSel.addEventListener("change",()=>{state.lang=langSel.value;if(state.selected)inspect(state.selected);else render()});
+morph.addEventListener("input",()=>{state.morph=Number(morph.value);document.getElementById("morphVal").textContent=state.morph+"%";render()});
+search.addEventListener("input",render);region.addEventListener("change",render);
+minStability.addEventListener("input",()=>{document.getElementById("minStabilityVal").textContent=Number(minStability.value).toFixed(2);render()});
+document.getElementById("zoomIn").addEventListener("click",()=>{state.zoom=Math.min(2.5,state.zoom*1.18);render()});
+document.getElementById("zoomOut").addEventListener("click",()=>{state.zoom=Math.max(.55,state.zoom*.85);render()});
+document.getElementById("fit").addEventListener("click",()=>{state.zoom=1;state.panX=state.panY=0;render()});
+document.getElementById("reset").addEventListener("click",()=>{
+  state.mode="consensus";state.model="llama";state.lang="en";state.morph=0;state.selected=null;state.zoom=1;state.panX=state.panY=0;
+  modelSel.value="llama";langSel.value="en";morph.value="0";document.getElementById("morphVal").textContent="0%";
+  search.value="";region.value="all";minStability.value="0";document.getElementById("minStabilityVal").textContent="0.00";
+  state.relations.forEach((_,k)=>state.relations.set(k,false));state.relations.set("is_a",true);state.relations.set("similar",true);
+  [...relationChecks.querySelectorAll("input")].forEach((cb,i)=>{const key=Object.keys(relLabels)[i];cb.checked=state.relations.get(key)});
+  document.getElementById("inspect").style.display="none";document.getElementById("emptyInspect").style.display="block";setMode("consensus");
+});
+
+svg.addEventListener("pointerdown",e=>{if(e.target!==svg)return;svg.setPointerCapture(e.pointerId);state.drag={x:e.clientX,y:e.clientY,px:state.panX,py:state.panY}});
+svg.addEventListener("pointermove",e=>{if(!state.drag)return;state.panX=state.drag.px+(e.clientX-state.drag.x);state.panY=state.drag.py+(e.clientY-state.drag.y);render()});
+svg.addEventListener("pointerup",()=>state.drag=null);
+svg.addEventListener("wheel",e=>{e.preventDefault();state.zoom=Math.max(.55,Math.min(2.5,state.zoom*(e.deltaY<0?1.08:.92)));render()},{passive:false});
+svg.addEventListener("click",()=>{state.selected=null;document.getElementById("inspect").style.display="none";document.getElementById("emptyInspect").style.display="block";render()});
+
+render();
+})();
+</script>
+</body>
+</html>
