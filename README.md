@@ -92,6 +92,11 @@ anything.
 `tests/test_null_calibration.py` runs the analysis on random inputs and fails if
 it reports a result. That test is the CI gate.
 
+Result tiers were agreed **before** any real output exists, in
+`docs/RESULT_INTERPRETATION_PROTOCOL.md`, so the bar cannot move after the
+numbers arrive. `docs/EXPERIMENT_0_FREEZE.md` pins the hashes of the benchmark
+and the two core sources, and a test fails if the record drifts from the tree.
+
 ### Known limitations, stated plainly
 
 - **There is no non-neural baseline yet.** The geometry null only asks "is there
@@ -133,10 +138,15 @@ A pretty 2-D projection is not a success criterion.
 ```text
 benchmark/   concepts.csv, relations.csv
 src/         extraction, analysis, report, ConceptNet overlay
-tests/       null calibration + notebook sync (this is the CI gate)
+tests/       null calibration, freeze-record drift, notebook sync (this is the CI gate)
 scripts/     build_notebook.py -- regenerates the Colab payload from the tree
 notebooks/   self-contained Colab run
 docs/        EXPERIMENT.md (method + output columns), runbook, references
+             DECISION_LOG.md -- why the design is what it is; read before reopening a settled question
+             FINDINGS_TO_DATE.md -- what is actually known (currently: one instrument finding, no model results)
+             KNOWN_RISKS_AND_OPEN_QUESTIONS.md -- 20-item review checklist
+             RESULT_INTERPRETATION_PROTOCOL.md -- result tiers agreed before seeing any real output
+             DATA_PROVENANCE.md, EXPERIMENT_0_FREEZE.md -- what the benchmark is, and its pinned hashes
 prototypes/  synthetic UI mock (not evidence)
 archive/     superseded PRH/WIT baseline
 ```
