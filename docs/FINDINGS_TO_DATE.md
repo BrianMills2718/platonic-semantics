@@ -6,7 +6,7 @@ Nine models, three families at three scales (0.5B / 1.6B / 3B), two languages,
 eighteen systems. Preregistered in D19. Full write-up in `RUN_002_RESULTS.md`.
 
 - **Nesting rises with scale.** Recovery toward perfect nesting goes 34.4% →
-  39.2% → 39.4% at 20 clusters, monotone at all five resolutions tested, 15/15
+  39.2% → 39.7% at 20 clusters, monotone at all five resolutions tested, 15/15
   pairs beating the null in every cell, and holding under average, complete and
   ward linkage. This is the lattice account's own prediction and it survived.
 - **Per-pair relation transfer stays at zero.** 0 of 10 relations significant at
@@ -16,6 +16,10 @@ eighteen systems. Preregistered in D19. Full write-up in `RUN_002_RESULTS.md`.
   tier, mean effect 0.082 → 0.077 → 0.093.
 - **Raw agreement drifts up**: mean held-out rho 0.369 → 0.371 → 0.398, 15/15
   pairs beating the null throughout; kNN stability 0.235 → 0.250 → 0.257.
+- **A precision defect was found and corrected**: the large tier had silently run
+  in float32 while the others ran in bfloat16, because `--dtype` applied only on
+  CUDA and 3B does not fit this GPU. Re-extracted with precision genuinely held
+  constant, the trend is unchanged (39.7% vs 39.4% at 20 clusters).
 - **Net:** concepts converge with scale, relations do not. Neither reading of the
   run-001 fork wins outright.
 

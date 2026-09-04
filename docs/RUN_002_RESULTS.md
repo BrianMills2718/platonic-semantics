@@ -51,11 +51,13 @@ Recovery toward perfect nesting, against a size-matched random-partition null:
 
 | clusters | small (~0.5B) | mid (~1.6B) | large (~3B) |
 | --- | --- | --- | --- |
-| 6 | 25.6% | 26.0% | **30.4%** |
-| 10 | 29.7% | 32.5% | **36.3%** |
-| 14 | 33.3% | 37.3% | **37.5%** |
-| 20 | 34.7% | 39.2% | **39.4%** |
-| 30 | 34.3% | 38.2% | **39.7%** |
+| 6 | 25.6% | 26.0% | **28.4%** |
+| 10 | 29.7% | 32.5% | **34.9%** |
+| 14 | 33.3% | 37.3% | **37.3%** |
+| 20 | 34.7% | 39.2% | **39.7%** |
+| 30 | 34.3% | 38.2% | **39.2%** |
+
+The large-tier column is the **corrected** one; see the precision defect below.
 
 Monotone at every resolution, 15 of 15 pairs beating the null in all fifteen
 cells. Reproduce with `python scripts/nesting_by_scale.py`; the numbers above are
@@ -67,6 +69,33 @@ average (34.7 → 39.2 → 39.4), complete (25.0 → 27.3 → 27.1) and ward
 does not. The complete-linkage tier ordering is the one wobble: mid and large are
 within 0.2 points of each other, so that method shows small → {mid, large} rather
 than a clean three-step rise.
+
+#### Defect found and corrected: precision covaried with scale
+
+The first version of this table was computed with the large tier running in
+**float32** while the small and mid tiers ran in **bfloat16** — exactly the
+confound D19 fixed the dtype to prevent. `--dtype` was documented as a *CUDA*
+option and applied the dtype kwarg only when the device started with `cuda`; the
+large tier ran on CPU because 3B does not fit a 4 GB GPU, so it silently loaded
+at full precision. The per-model log line reported `dtype=bfloat16` throughout
+because it printed the *request* rather than the loaded dtype.
+
+This mattered because float32 is the more precise setting and the large tier is
+the one carrying the claim: a precision artefact could have manufactured the
+entire rise.
+
+It did not. The large tier was re-extracted with the dtype genuinely applied and
+verified after load, and the trend is unchanged — at 20 clusters the corrected
+bfloat16 tier scores **39.7%** against the accidental float32 tier's 39.4%,
+slightly higher rather than lower, and still 15/15 pairs in every cell. Numbers
+above are the corrected ones; `results/run_002/nesting_by_scale_bf16.json` is the
+record and `nesting_by_scale.json` retains the original for comparison.
+
+`load_model` now applies the requested dtype on every device and raises if the
+model loads at anything else, and the saved log line reports the actual compute
+dtype. Attention implementation is also pinned to eager for every model and
+device, since BLOOM supports nothing else and it was therefore the only setting
+the whole ladder could share.
 
 ### Primary 2 — per-pair relation transfer. Still zero. Prediction not met.
 
@@ -138,6 +167,10 @@ value:
 
 - Three points on a six-fold range is a short ladder; monotone across three
   points is suggestive, not a curve.
+- `bloom_560m` produces non-finite representations on CPU in **both** bfloat16 and
+  float32, and is finite on GPU. It is the smallest model in the ladder and the
+  one that also failed in float16 in run 001. Its run-002 tensors are the GPU
+  ones and are clean; anything re-extracted for it must use the GPU.
 - Model families are not independent of scale: each family's larger members share
   a tokenizer and much training data with its smaller ones, so within-family
   comparisons are not clean replicates.

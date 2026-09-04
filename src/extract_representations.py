@@ -33,12 +33,23 @@ def load_model(name, device, dtype=DEFAULT_DTYPE):
     tok = AutoTokenizer.from_pretrained(name, use_fast=True)
     if tok.pad_token_id is None:
         tok.pad_token = tok.eos_token or tok.unk_token
-    kwargs = {"low_cpu_mem_usage": True}
-    if device.startswith("cuda"):
-        kwargs[DTYPE_KWARG] = DTYPES[dtype]
+    kwargs = {"low_cpu_mem_usage": True, DTYPE_KWARG: DTYPES[dtype]}
+    # Eager attention for every model and device. BLOOM supports nothing else, so
+    # eager is the only setting the whole ladder can share -- and on this machine
+    # SDPA additionally drags in a triton CUDA helper that cannot build for want
+    # of Python.h. Keeping it uniform means attention implementation never
+    # covaries with model family or scale.
+    kwargs["attn_implementation"] = "eager"
     model = AutoModelForCausalLM.from_pretrained(name, **kwargs)
     model.eval().to(device)
-    return tok, model
+    actual = str(next(model.parameters()).dtype).replace("torch.", "")
+    if actual != dtype:
+        raise RuntimeError(
+            f"asked for {dtype} but the model loaded as {actual}. Precision that "
+            "silently differs from the request is how run 002 ended up computing "
+            "its large tier in float32 while the smaller tiers ran in bfloat16."
+        )
+    return tok, model, actual
 
 @torch.inference_mode()
 def encode_all(tok, model, texts, batch_size, max_length, device):
@@ -102,9 +113,11 @@ def encode_term_in_context(tok, model, template, terms, batch_size, max_length, 
         enc = tok(batch, padding=True, truncation=True, max_length=max_length,
                   return_tensors="pt", return_offsets_mapping=True)
         offsets = enc.pop("offset_mapping")
-        enc = {k: v.to(device) for k, v in enc.items()}
-        out = model(**enc, output_hidden_states=True, use_cache=False, return_dict=True)
-
+        # Build the term mask on CPU and move it once. Filling it element by element
+        # on an accelerator issues one scatter per token, which drags in a compiled
+        # kernel path -- on this machine that meant triton trying to build a CUDA
+        # helper and failing outright for want of Python.h. It is also simply
+        # faster: the loop is over a handful of offsets per row.
         mask = torch.zeros_like(enc["attention_mask"])
         for i, (lo, hi) in enumerate(batch_spans):
             for j, (a, b) in enumerate(offsets[i].tolist()):
@@ -112,6 +125,10 @@ def encode_term_in_context(tok, model, template, terms, batch_size, max_length, 
                     continue
                 if a < hi and b > lo:   # token overlaps the term's characters
                     mask[i, j] = 1
+        mask = mask.to(device)
+
+        enc = {k: v.to(device) for k, v in enc.items()}
+        out = model(**enc, output_hidden_states=True, use_cache=False, return_dict=True)
         empty = mask.sum(1) == 0
         if empty.any():
             raise RuntimeError(
@@ -142,7 +159,7 @@ def main():
     ap.add_argument("--prompt-mode",default=None,choices=["bare","neutral"])
     ap.add_argument("--device",default=None,help="e.g. cuda, cuda:0, mps, cpu")
     ap.add_argument("--dtype",default=DEFAULT_DTYPE,choices=sorted(DTYPES),
-                    help="CUDA compute dtype; float32 is the safe default (see load_model)")
+                    help="compute dtype, applied on every device and verified after load")
     ap.add_argument("--average-modes",default=None,
                     help="comma-separated prompt modes to average over, or 'config' to use "
                          "averaged_modes from experiment_config.json. Saves as __averaged.")
@@ -181,7 +198,7 @@ def main():
     for key in models:
         name=cfg["models"][key]
         print(f"\n=== {key}: {name} ===")
-        tok,model=load_model(name,device,args.dtype)
+        tok,model,actual_dtype=load_model(name,device,args.dtype)
         for lang in langs:
             if average_modes:
                 # Each template contributes an L2-normalised representation, so a
@@ -202,7 +219,7 @@ def main():
             np.savez_compressed(path, concept_ids=ids, reps=reps.astype(np.float16),
                                 model_key=key, model_name=name, language=lang,
                                 prompt_mode=prompt_mode)
-            print(f"saved {path}  shape={reps.shape}  dtype={args.dtype}")
+            print(f"saved {path}  shape={reps.shape}  compute_dtype={actual_dtype}")
         del model,tok
         gc.collect()
         if device.startswith("cuda"):

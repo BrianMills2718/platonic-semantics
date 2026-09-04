@@ -115,6 +115,13 @@ def main() -> int:
         for s, layers in layer_rdms.items():
             dd = layers[chosen[s]]
             dd = (dd + dd.T) / 2
+            # Cosine can exceed 1 by ~1e-7 after centering, which makes a distance
+            # marginally negative and scipy's linkage refuse the matrix outright.
+            # Clip rather than pass checks=False blindly: the negative values are
+            # float noise, but a genuinely negative distance would be a real bug
+            # and should not be hidden.
+            assert dd.min() > -1e-4, f"{s}: distance {dd.min()} is too negative to be float noise"
+            dd = np.clip(dd, 0.0, None)
             np.fill_diagonal(dd, 0)
             trees[s] = linkage(squareform(dd, checks=False), method=args.linkage)
 

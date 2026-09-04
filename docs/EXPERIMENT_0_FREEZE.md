@@ -159,3 +159,39 @@ Nine models, three families at three scales, two languages each.
 
 Unchanged: seed 20260903, the 60/40 stratified split, k=10, 1000 permutations,
 2000 bootstrap replicates, and every null.
+
+## Experiment 0.2a — precision correction, 2026-09-04
+
+Not a new experiment. Run 002's large tier is re-extracted because its compute
+precision did not match its label, and the freeze is amended to the corrected
+code. Benchmark unchanged.
+
+**The defect.** `--dtype` was applied only when the device string began with
+`cuda`, and documented that way. The large tier ran on CPU (3B does not fit a
+4 GB GPU) and therefore loaded in float32 while the small and mid tiers ran in
+bfloat16 — precision covarying with scale, which D19 fixed the dtype to prevent.
+The per-model log line printed the requested dtype, not the loaded one, so
+nothing surfaced it.
+
+**Effect on the result: none.** Re-extracted with precision genuinely constant,
+nesting at 20 clusters reads 34.7 / 39.2 / **39.7** against the original
+34.7 / 39.2 / 39.4. Slightly higher, same direction, 15/15 pairs in every cell.
+
+**Code changes.**
+- `load_model` applies the requested dtype on every device, and raises if the
+  loaded parameter dtype differs from the request.
+- the saved log line reports the actual compute dtype.
+- attention implementation is pinned to `eager` for every model and device. BLOOM
+  supports nothing else, so it is the only setting the whole ladder can share; it
+  also avoids an SDPA path that on this machine tries to build a triton CUDA
+  helper and fails for want of Python.h.
+- `scripts/nesting_by_scale.py` clips distances at zero before linkage, guarded by
+  an assertion that the negative values are float noise rather than a real bug.
+
+### Core code SHA-256 (0.2a)
+
+extract_representations.py:
+`ea1b7826f6af0556f5ff04782781548649c27269a3066eca50d8369b08ace832`
+
+analyze_semantic_geometry.py:
+`545427d502ed5f307ff00a48180a97b89b5746a6bbf00a9f51a8bc21c63467f3`
