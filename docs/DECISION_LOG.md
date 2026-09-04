@@ -363,3 +363,53 @@ Nesting and per-pair transfer are therefore the primary outcomes. Raw held-out
 agreement is secondary and will not settle the fork on its own. A flat nesting
 curve across a six-fold scale range is a real negative result for the lattice
 account and should be reported as one.
+
+## D20 — Run 003 tests context, because the 7B rung is not reachable here
+
+Run 002 left one half of D19's prediction unmet: per-pair relation transfer stayed
+at zero of ten relations across a six-fold scale range, while nesting rose.
+`RUN_002_RESULTS.md` lists three ways to settle it. The first is not available.
+
+**Why not 7B.** A 7B model is ~14 GB of weights in bfloat16 against 9 GB of
+available RAM and a 4 GB GPU. Measured, not assumed. Four-bit quantisation would
+fit, and is rejected: D19 fixed dtype across the ladder precisely so that
+precision could not covary with scale, and quantising only the top rung would
+reintroduce exactly that confound. A 7B rung needs a different machine and stays
+open as the decisive measurement.
+
+**What runs instead.** Option 2, contextualised stimuli. Every result so far
+rests on bare single words, so a relation may fail to transfer because its
+arguments are ambiguous rather than because relations are not portable. The
+prompt-averaging path already exists and is already frozen
+(`--average-modes config`, six templates, term-span pooling), so this is a
+stimulus change against an unchanged analysis.
+
+It also closes a gap run 002 recorded: no prompt-averaged extraction existed at
+the mid and large tiers, so the reliability floor could not be applied there.
+This run produces it for all nine models.
+
+### The prediction, before the numbers exist
+
+**If bare single words are the limitation**, contextualised representations
+should move per-pair relation transfer: at least one relation reaching q <= 0.05,
+or the best p-value falling clearly below run 002's 0.093, at any tier.
+
+**If relations are not portable regardless of stimulus**, transfer stays at zero
+of ten with best p in the same band, and the difference between bare and averaged
+is confined to reliability.
+
+Per-pair transfer is again the primary outcome. Nesting and raw agreement are
+reported for continuity but cannot settle this question, since a stimulus change
+moves both for reasons unrelated to relations.
+
+### Fixed in advance
+
+1. Same six templates, same term-span pooling, same L2-normalised averaging as
+   the frozen extractor. No new prompt engineering.
+2. Same analysis, centred, same seed, split, k, permutations and bootstrap.
+3. Bare and averaged are compared within tier and within system. A system whose
+   bare-vs-averaged reliability falls below 0.30 is reported separately, as
+   `bloom_560m|en` was in run 001.
+4. A null result is a result and is reported as one. Two consecutive runs failing
+   to move per-pair transfer would make "relations are a property of a set, not
+   of a pair" the finding rather than an interim reading.
