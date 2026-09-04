@@ -1,5 +1,26 @@
 # FINDINGS TO DATE
 
+## Run 003 happened on 2026-09-04 — context (small tier; replication extracting)
+
+Same concepts and probes, extracted twice per system: bare terms, and terms inside
+six sentence templates with only the term's own tokens pooled. Everything else
+held, including device, dtype and attention, so the two differ only in stimulus.
+Preregistered in D20. Write-up in `RUN_003_RESULTS.md`.
+
+- **The first relation to transfer between models at the level of a specific pair.**
+  `HasProperty` goes from p=0.259 bare to **p=0.005** contextualised, reaching
+  q=0.0500 — exactly on the FDR threshold, so marginal on its own.
+- **The direction is consistent across relations.** The three with any positive
+  bare effect all improve together: `HasProperty` 0.259 → 0.005, `Associated`
+  0.178 → 0.019, `UsedFor` 0.623 → 0.125. Mean effect −0.031 → −0.010.
+- **Context raises cross-system agreement by half**, 0.434 → 0.631, and lifts
+  group-level coherence 0.097 → 0.155.
+- **It clears the anisotropy problem entirely**: no system trips the degenerate-layer
+  flag under contextualised stimuli. Risk 21 has been open since run 001.
+- **Qualifies run 002's conclusion.** "Relations do not transfer" holds only for
+  bare single words. `IsA` stays firmly negative under both.
+- Small tier only so far: four systems, six pairs. Mid and large extracting.
+
 ## Run 002 happened on 2026-09-04 — scale ladder
 
 Nine models, three families at three scales (0.5B / 1.6B / 3B), two languages,

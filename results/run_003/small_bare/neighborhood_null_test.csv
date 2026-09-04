@@ -1,0 +1,2 @@
+metric,heldout_observed,bootstrap_ci_lo,bootstrap_ci_hi,null_mean,null_sd,effect_over_null,z_vs_null,permutation_p
+mean_cross_system_knn_jaccard,0.2698341906070709,0.2514378377093988,0.289714778775678,0.06623759927973151,0.003305180855343845,0.20359659132733943,61.59922867705188,0.000999000999000999

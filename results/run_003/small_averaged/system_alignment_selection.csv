@@ -1,0 +1,7 @@
+system_a,system_b,selection_spearman_rho
+qwen25_05b|en,qwen25_05b|zh,0.7187023296213462
+qwen25_05b|en,xglm_564m|en,0.7702459827741085
+qwen25_05b|en,xglm_564m|zh,0.544400355164389
+qwen25_05b|zh,xglm_564m|en,0.5999487212338703
+qwen25_05b|zh,xglm_564m|zh,0.695335260027177
+xglm_564m|en,xglm_564m|zh,0.5457218903062385
