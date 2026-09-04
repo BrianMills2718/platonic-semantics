@@ -413,3 +413,40 @@ moves both for reasons unrelated to relations.
 4. A null result is a result and is reported as one. Two consecutive runs failing
    to move per-pair transfer would make "relations are a property of a set, not
    of a pair" the finding rather than an interim reading.
+
+### D20 addendum — run 003 is CPU-only, and loses one system to it (2026-09-04)
+
+Recorded as a decision taken, not a question. Three environment facts forced it,
+all measured rather than assumed:
+
+1. **The GPU cannot run the averaged path.** Qwen's transformers 5.x
+   implementation launches a triton JIT kernel, and triton cannot build its CUDA
+   helper because the python3.12 development headers are not installed
+   (`Python.h: No such file or directory`). Eager attention does not avoid it, and
+   `DISABLE_KERNEL_MAPPING`, `USE_TRITON_KERNEL=0` and `DISABLE_KERNELS` all fail.
+   The bare path is unaffected, which is why run 002 never hit this.
+2. **`bloom_560m` cannot run on CPU.** It returns non-finite representations in
+   both bfloat16 and float32 — the device, not the precision. It is finite on GPU,
+   which is where run 002's tensors for it came from. It is also the model that
+   returned NaN in float16 in run 001, so this is its third numerical failure.
+3. Together those are exclusive: the one model that needs the GPU is in a run that
+   needs the CPU.
+
+**Decision.** Run 003 runs entirely on CPU, in bfloat16, with eager attention, and
+**excludes `bloom_560m`**. Holding device, dtype and attention constant across
+every system is what D20's bare-versus-averaged comparison requires; a single
+system on a different device would put a device difference inside the comparison
+it is meant to control. Run 003's small tier therefore has four systems
+(`qwen25_05b`, `xglm_564m`, two languages each) rather than six.
+
+Bare is re-extracted for run 003 rather than reused from run 002, so bare and
+averaged differ only in stimulus. Run 002's tensors stay as they are.
+
+**What this costs.** Run 003 cannot speak to BLOOM at 560m, and its small tier is
+two families rather than three. Cross-tier comparison within run 003 is therefore
+uneven in family composition, and any run-003 number is not directly comparable to
+a run-002 number computed under a different attention implementation. The
+bare-versus-averaged contrast, which is the preregistered question, is unaffected.
+
+Installing `python3.12-dev` would restore the GPU route and is the fix if this
+recurs; it needs root and was not attempted unattended.
