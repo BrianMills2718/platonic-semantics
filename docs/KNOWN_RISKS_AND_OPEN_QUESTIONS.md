@@ -126,6 +126,53 @@ The interpretation protocol is prospective relative to the first real run, not a
 ### 18. Dataset dependence is a core risk
 Published representational convergence does not guarantee convergence on this stimulus set.
 
+### 21. The deep layers are nearly degenerate — **[open, not addressed]**
+The load-bearing sensitivity run selects layer 24 for five of six systems. At that
+layer the 212 concepts have a mean pairwise cosine of 0.714 (qwen|en), 0.791
+(qwen|zh), 0.924 (xglm|en), 0.944 (xglm|zh), 0.978 (bloom|en) and **0.997**
+(bloom|zh) — against 0.037-0.415 at layer 0. Rank orderings are being read from
+the last fraction of a percent of a collapsed space. Either justify measuring
+there or whiten before doing so.
+
+### 22. The headline is not invariant to centering — **[open, not addressed]**
+Nothing preregistered whether representations are mean-centred before the cosine
+RDM, and the choice moves results materially. Diagnostics over all 212 concepts:
+mean-centering moves qwen|zh-bloom|zh from 0.453 to 0.607, while removing the top
+principal component moves bloom|en-xglm|zh from 0.162 to 0.021 and
+bloom|en-xglm|en from 0.250 to 0.106 — and moves qwen|en-bloom|en *up*, 0.311 to
+0.427. The top PC in LM space typically carries frequency and length, which is
+the confound the lexical control targets. Fix the choice deliberately and report
+under it; these figures are directional, not corrected effect sizes.
+
+### 23. The `IsA` null matches region, not taxonomic level — **[open]**
+All 18 `IsA` targets are superordinate category nouns (`mammal`, `tool`,
+`emotion`, `metal`). The region-matched null draws replacements from the same
+broad region, which is mostly basic-level terms, so abstractness is not
+controlled. Any surviving `IsA` result needs a null matched on taxonomic level.
+
+### 24. `corr()` still maps a non-finite result to 0.0 — **[open]**
+`src/analyze_semantic_geometry.py` returns `0.0` rather than raising when
+Spearman is non-finite. This is the silent zero that hid the bloom-560m float16
+NaN in run 001; the cause was fixed, the swallow was not. It reads downstream as
+"these systems do not agree", which is a wrong answer wearing the shape of a
+right one.
+
+### 25. Layout in the atlas is a display convenience — **[bounded]**
+`results/run_001/atlas.html` positions concepts by force-directed layout over the
+agreement graph. That is one of many valid arrangements; the links are the data
+and the coordinates are not. Positive control on record: same-region concepts
+land at mean layout distance 0.33 against 0.73 for unrelated pairs, so the layout
+is not noise. The map code is display built on run outputs and is not under test.
+
+### 26. Prompt reliability caps the headline, and one system fails it — **[open]**
+`scripts/prompt_reliability_ceiling.py` measures how much of a system's geometry
+survives rewording the stimulus. `bloom_560m|en` scores 0.156 and appears in 5 of
+the 15 pairs behind the headline; it also normalises above 1.0 against
+`qwen25_05b|en`, meaning it agrees with another model more than with itself, which
+voids that pair. XGLM has no second extraction yet. A training-seed ceiling
+(Pythia publishes same-architecture seeds) remains the better measurement and is
+not done.
+
 ## Open questions
 
 1. Are local neighborhoods more reproducible than global RDM geometry?

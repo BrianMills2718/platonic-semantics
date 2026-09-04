@@ -1,6 +1,23 @@
 # REAL RUN RUNBOOK
 
-## Recommended route: Colab
+## Recommended route: a local GPU
+
+Run 001 settled this. The handoff said the run needed Colab; it did not. Three
+0.5B models over 212 short prompts is about two minutes of extraction on a local
+NVIDIA T600 (4 GB) in float32, one model loaded at a time.
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python run_pilot.py --device cuda --permutations 1000 --bootstrap 2000
+```
+
+Use `--device mps` on Apple Silicon, or omit `--device` to autodetect. Always
+run `scripts/qc_representations.py` on the extracted tensors before believing any
+number: run 001's two real defects were both invisible in the code and visible in
+the tensors.
+
+## Fallback route: Colab
 
 Open:
 

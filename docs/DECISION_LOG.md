@@ -221,3 +221,46 @@ literature belongs in `REFERENCES.md` before the relation claim is made again.
 Before trusting any statistic that claims to test a pairing, mapping or
 correspondence, permute that correspondence while holding everything else fixed
 and confirm the number moves.
+
+## D18 — The project states its own theory, and the handoff briefing is retired
+
+Until now the only written statement of what "platonic semantic space" is taken
+to mean lived in sections 3 and 4 of a 1,245-line coding-agent handoff briefing
+whose headline was stale (it recorded that no pretrained model had been run,
+which stopped being true on 2026-09-03). Everything else in that file duplicated
+`EXPERIMENT.md`, `RESULT_INTERPRETATION_PROTOCOL.md` and the README.
+
+The deeper problem it exposed: the project had an inductive half and no deductive
+half. Comparing models only to each other measures agreement, and agreement has
+no external referent, so no amount of analysis or visual design can make it into
+a picture of a space. That ceiling is structural.
+
+Decision, 2026-09-04:
+
+1. `THEORY.md` is added and is the project's statement of what it is testing:
+   platonic semantic space as a refinement lattice of distinguishability
+   quotients under typed probes, rather than a metric space. The idea is
+   generalised from the observation ladder in the separate `platonic-atlas-math`
+   project, not from its mathematics.
+2. The research agenda is stated as two ends that must meet — a deductive
+   question about representation, and an inductive question about whether
+   observed model convergence corresponds to it. A frame earns its place by
+   making predictions the inductive side can check, not by being elegant.
+3. Mathematics remains a separate project. `THEORY.md` §6 records why it is a
+   *region* of the same lattice — formal, decidable probes with an independently
+   checkable limit — and restates the standing rule that it is not the organising
+   subject here.
+4. The first prediction is recorded and already tested: if models are coarsenings
+   of one structure their disagreements should nest rather than cross. They nest
+   better than chance in 15 of 15 pairs, but only 6% to 23% of the way, rising
+   with resolution. Reported in `THEORY.md` §7 and `FINDINGS_TO_DATE.md`.
+5. Four handoff-era documents are removed: `CODING_AGENT_CONTEXT.md`,
+   `CODING_AGENT_PROMPT.md`, `HANDOFF_ORIGIN.md` and `HANDOFF_MANIFEST.json`.
+   They referenced only each other, nothing else in the repository referenced
+   them, and their live content is now in `THEORY.md` §3 and §6. `PILOT_MANIFEST.json`
+   goes with them: it recorded "no pretrained model has been run yet" and is
+   superseded by `summary.json` and `EXPERIMENT_0_FREEZE.md`. Git history keeps
+   all six.
+
+This supersedes nothing in D1-D17. It adds the layer those decisions were
+implicitly serving.

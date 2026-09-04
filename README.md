@@ -198,10 +198,14 @@ tests/       null calibration, pairing sensitivity, freeze-record drift, noteboo
 scripts/     build_notebook.py -- regenerates the Colab payload from the tree
              prompt_reliability_ceiling.py -- what agreement was achievable at all
 notebooks/   self-contained Colab run
-docs/        EXPERIMENT.md (method + output columns), runbook, references
+docs/        THEORY.md -- what "platonic semantic space" is taken to mean, and
+             the predictions that follow; read before the results
+             EXPERIMENT.md -- method and output columns; REFERENCES.md -- prior art
+             REAL_RUN_RUNBOOK.md -- how to actually run it (local GPU, ~2 min)
+             RUN_001_RESULTS.md -- the run, and the two corrections to it
              DECISION_LOG.md -- why the design is what it is; read before reopening a settled question
-             FINDINGS_TO_DATE.md -- what is actually known (currently: one instrument finding, no model results)
-             KNOWN_RISKS_AND_OPEN_QUESTIONS.md -- 20-item review checklist
+             FINDINGS_TO_DATE.md -- what is actually known, with what has been withdrawn
+             KNOWN_RISKS_AND_OPEN_QUESTIONS.md -- 26-item review checklist, 6 open from 2026-09-04
              RESULT_INTERPRETATION_PROTOCOL.md -- result tiers agreed before seeing any real output
              DATA_PROVENANCE.md, EXPERIMENT_0_FREEZE.md -- what the benchmark is, and its pinned hashes
 results/     run_001/atlas.html -- the readable face of the run, real numbers only

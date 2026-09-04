@@ -24,11 +24,17 @@ not established.
   three Chinese cross-model pairs hold at depth (0.45, 0.40, 0.25, all q=0.003)
   while two of three English pairs lose significance. Unexpected, and a lead
   rather than a result.
-- Only **IsA** survives the region-matched null and FDR among relations, and it
-  survives in *both* layer configurations (q=0.020 each), with its effect over
-  the null rising from 0.230 to 0.251 when early layers are excluded — so it is
-  not an embedding artefact. Within a system relations do behave consistently;
-  across systems they largely do not.
+- **WITHDRAWN 2026-09-04.** This bullet previously reported that only `IsA`
+  survived its null and FDR. The statistic behind it is invariant to which source
+  is paired with which target, so it could not test a relation at all; see D17.
+  Corrected result, same extraction and seed: **no relation** lets a specific pair
+  be carried to another model (`IsA`, `Causes` and `AtLocation` sit significantly
+  *below* a distance-matched comparison), while **7 of 10 relations share a
+  group-level direction** across three models and two languages at q=0.0014. The
+  operator exists as an average, not as an instance.
+  Within a system, relations still behave consistently: `Antonym`, `AtLocation`
+  and `PartOf` clear the strictest permuted-pairing null in 6 of 6 systems, and
+  that remains the strongest relation evidence in the run.
 - The restricted-layer re-analysis selected the **final** layer for five of six
   systems, not a mid-depth one. These models agree most at their first and last
   layers and least in the middle.
@@ -49,6 +55,24 @@ not established.
   selector jumps from the earliest layers straight to the last and stays there,
   flat at rho 0.187-0.200 for every cutoff from 2 to 24. The reported result does
   not depend on the arbitrary choice of 8.
+
+
+## Added 2026-09-04
+
+- **The headline had no denominator.** Extracting each system twice — bare word,
+  then averaged over six templates — bounds how much agreement was reachable.
+  `bloom_560m|en` scores 0.156 for agreeing with itself and is not a usable
+  instrument; over the pairs where both systems are reliable, the models reach
+  **0.468 of what was achievable** (0.615 within a language, 0.394 across).
+- **Disagreement nests more than chance, weakly, and more so at finer
+  resolution.** All 15 pairs beat a size-matched random-partition null; recovery
+  toward perfect nesting runs 5.9% at 6 clusters (10/15 pairs) to 22.9% at 30
+  (15/15). Predicted by `THEORY.md` §4 and reported in full at §7.
+- **The three results above, the relation correction, and the map all say one
+  thing:** these systems converge on local neighbourhoods and not on how
+  neighbourhoods compose into a whole. Unanimous neighbour links are within a
+  semantic region 76% of the time at mean map distance 0.20, against 43% and 0.42
+  for links only two systems endorse.
 
 ## Instrument findings
 
