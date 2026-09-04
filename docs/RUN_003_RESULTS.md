@@ -93,6 +93,14 @@ layer problem entirely. That last one matters beyond this run: risk 21 in
 `KNOWN_RISKS_AND_OPEN_QUESTIONS.md` has been open since run 001, and a stimulus
 change appears to dissolve it.
 
+## The picture
+
+`results/run_003/context_effect.html` is this run as a morph. Positions are fixed —
+taken from the combined agreement of both conditions — so dragging the slider shows
+only what the stimulus changes, not a reshuffle. The third readout is the one to
+watch: total links *fall* from 3,171 to 2,714 while unanimous links rise from 215
+to 379. Context concentrates agreement rather than adding it.
+
 ## The reliability ceiling, and how much of it is used
 
 Both stimulus modes now exist for every included system, so the ceiling is

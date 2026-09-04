@@ -210,7 +210,8 @@ docs/        THEORY.md -- what "platonic semantic space" is taken to mean, and
              KNOWN_RISKS_AND_OPEN_QUESTIONS.md -- 26-item review checklist, 6 open from 2026-09-04
              RESULT_INTERPRETATION_PROTOCOL.md -- result tiers agreed before seeing any real output
              DATA_PROVENANCE.md, EXPERIMENT_0_FREEZE.md -- what the benchmark is, and its pinned hashes
-results/     run_001/atlas.html -- the readable face of the run, real numbers only
+results/     run_001/atlas.html -- the readable face of run 001, real numbers only
+             run_003/context_effect.html -- bare vs in-context, as a morph
 prototypes/  synthetic UI mock (not evidence)
 archive/     superseded PRH/WIT baseline
 ```
