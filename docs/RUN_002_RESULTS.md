@@ -51,17 +51,22 @@ Recovery toward perfect nesting, against a size-matched random-partition null:
 
 | clusters | small (~0.5B) | mid (~1.6B) | large (~3B) |
 | --- | --- | --- | --- |
-| 6 | 25.3% | 25.6% | **30.1%** |
-| 10 | 29.3% | 32.2% | **35.9%** |
-| 14 | 33.1% | 36.9% | **37.2%** |
-| 20 | 34.4% | 39.0% | **39.1%** |
-| 30 | 34.0% | 38.0% | **39.6%** |
+| 6 | 25.6% | 26.0% | **30.4%** |
+| 10 | 29.7% | 32.5% | **36.3%** |
+| 14 | 33.3% | 37.3% | **37.5%** |
+| 20 | 34.7% | 39.2% | **39.4%** |
+| 30 | 34.3% | 38.2% | **39.7%** |
 
 Monotone at every resolution, 15 of 15 pairs beating the null in all fifteen
-cells. It is not an artefact of one clustering method — at k=20 the trend holds
-under average (34.4 → 39.0 → 39.2), complete (25.0 → 27.3 → 27.1) and ward
+cells. Reproduce with `python scripts/nesting_by_scale.py`; the numbers above are
+that script's output, and `results/run_002/nesting_by_scale.json` is the record.
+
+It is not an artefact of one clustering method — at k=20 the trend holds under
+average (34.7 → 39.2 → 39.4), complete (25.0 → 27.3 → 27.1) and ward
 (30.4 → 34.4 → 35.6) linkage. Absolute values differ by method; the direction
-does not.
+does not. The complete-linkage tier ordering is the one wobble: mid and large are
+within 0.2 points of each other, so that method shows small → {mid, large} rather
+than a clean three-step rise.
 
 ### Primary 2 — per-pair relation transfer. Still zero. Prediction not met.
 

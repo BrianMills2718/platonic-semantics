@@ -187,7 +187,7 @@ before any tensor existed. `RUN_002_RESULTS.md` has the full table.
 
 The prediction was half met, and the half that failed is the one that matters
 most to this document. Nesting rises monotonically with scale at every clustering
-resolution and under three linkage methods, which is what (b) predicts and what
+resolution and under three linkage methods (`scripts/nesting_by_scale.py`), which is what (b) predicts and what
 the lattice account needs. But per-pair relation transfer stayed at **zero of ten
 relations at every tier**, which is what (a) predicts; the best p-value improved
 from 0.199 to 0.093 without crossing.

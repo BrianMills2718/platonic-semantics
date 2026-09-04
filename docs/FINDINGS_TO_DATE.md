@@ -6,7 +6,7 @@ Nine models, three families at three scales (0.5B / 1.6B / 3B), two languages,
 eighteen systems. Preregistered in D19. Full write-up in `RUN_002_RESULTS.md`.
 
 - **Nesting rises with scale.** Recovery toward perfect nesting goes 34.4% →
-  39.0% → 39.1% at 20 clusters, monotone at all five resolutions tested, 15/15
+  39.2% → 39.4% at 20 clusters, monotone at all five resolutions tested, 15/15
   pairs beating the null in every cell, and holding under average, complete and
   ward linkage. This is the lattice account's own prediction and it survived.
 - **Per-pair relation transfer stays at zero.** 0 of 10 relations significant at
