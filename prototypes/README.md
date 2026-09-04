@@ -17,6 +17,9 @@ DO NOT:
 - treat its clusters as discovered semantic structure;
 - tune scientific conclusions to match it.
 
-After the real experiment succeeds, replace its demo data with real outputs and redesign it around the strongest validated measurements.
+**Superseded for display purposes, 2026-09-04.** The real atlas is
+`results/run_001/atlas.html`: same intent, built entirely from that run's own output
+files, with no synthetic values anywhere. This file stays as the interaction sketch
+and stays synthetic. Do not merge the two.
 
 The preferred future UI should emphasize local relational structure and uncertainty rather than a single global 2-D scatterplot.

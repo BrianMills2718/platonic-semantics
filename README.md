@@ -204,6 +204,7 @@ docs/        EXPERIMENT.md (method + output columns), runbook, references
              KNOWN_RISKS_AND_OPEN_QUESTIONS.md -- 20-item review checklist
              RESULT_INTERPRETATION_PROTOCOL.md -- result tiers agreed before seeing any real output
              DATA_PROVENANCE.md, EXPERIMENT_0_FREEZE.md -- what the benchmark is, and its pinned hashes
+results/     run_001/atlas.html -- the readable face of the run, real numbers only
 prototypes/  synthetic UI mock (not evidence)
 archive/     superseded PRH/WIT baseline
 ```
