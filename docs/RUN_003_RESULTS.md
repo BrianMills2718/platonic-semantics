@@ -107,9 +107,23 @@ bare-word design, not the models, was carrying the negative finding.
 
 ## What is still owed
 
-- **Replication at mid and large tiers.** Extracting now. One tier and one
-  borderline q-value is not a finding; if `HasProperty` moves the same way at
-  1.6B and 3B, it is.
+- **Replication at mid and large tiers.** Extracting at time of writing. One tier
+  and one borderline q-value is not a finding; if `HasProperty` moves the same way
+  at 1.6B and 3B, it is.
+
+  To resume: `scripts/run003_extract.sh` skips any model whose tensors already
+  exist, so re-running it continues where it stopped. Then, per tier and mode:
+
+  ```bash
+  python src/analyze_semantic_geometry.py \
+      --repr-dir outputs/run003/tier_<tier>_<mode> --prompt-mode <mode> \
+      --outdir outputs/run003/analysis_<tier>_<mode> --center \
+      --permutations 1000 --bootstrap 2000
+  ```
+
+  The tier directories are symlink views; build them the same way the small tier's
+  were, one per tier and stimulus mode. Extraction is CPU-bound and roughly six
+  times slower for the averaged mode, which is the whole cost of this run.
 - **The prompt-reliability ceiling for run 003**, now computable for every
   included system since both stimulus modes exist.
 - A 7B rung, still out of reach on this hardware (D20).
