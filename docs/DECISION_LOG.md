@@ -264,3 +264,36 @@ Decision, 2026-09-04:
 
 This supersedes nothing in D1-D17. It adds the layer those decisions were
 implicitly serving.
+
+### D18 addendum — the retirement gate, run properly (2026-09-04)
+
+D18 justified removing five documents from a link count. Project Meta's lifecycle
+policy is explicit that filename, age, size, similarity and inbound-link counts
+identify review *candidates* and never establish semantic eligibility
+(`ARCHIVE_POLICY.md`, semantic retirement gate). The gate was run afterwards
+rather than before. It passes, and the record it requires is below.
+
+- **Former paths:** `docs/CODING_AGENT_CONTEXT.md`, `docs/CODING_AGENT_PROMPT.md`,
+  `docs/HANDOFF_ORIGIN.md`, `docs/HANDOFF_MANIFEST.json`, `docs/PILOT_MANIFEST.json`.
+- **Terminal disposition:** `retired_git`, the policy default since the
+  2026-09-01 amendment. Git history is the recovery route; no tombstone or
+  sidecar file was created, per that ADR.
+- **Last containing revision:** `b913eac`. Removed in `2714f19`.
+- **Cutoff event:** run 001 on 2026-09-03. Every retired file described the
+  project as not yet having run a pretrained model.
+- **Promoted claims, verified at `b913eac`:** §3 multi-relational argument and §4
+  mathematics rule → `THEORY.md` §3 and §6. §1 origin → `THEORY.md` §0. §5
+  primary and relation hypotheses → the README success criterion, which is
+  stronger because it also requires a non-neural baseline. §18 geometry,
+  neighbourhood, relation and robustness gates → `RESULT_INTERPRETATION_PROTOCOL.md`
+  tiers 0-4, which additionally name pooling choices and tokenisation artefacts.
+  §2 scientific position → `REFERENCES.md`. §6-§17 duplicated `EXPERIMENT.md`,
+  `DATA_PROVENANCE.md` and `EXPERIMENT_0_FREEZE.md` and carried no unique claim.
+- **Relationships:** all `lineage_only`. No `blocks_archive`,
+  `redirect_before_archive` or `review_required` edge existed; nothing outside the
+  five referenced them.
+- **Gap the gate caught:** the founding conversation was unreachable from the
+  repository. It is now preserved unmodified at
+  `docs/origin/2026-09-04_founding_conversation.md` and routed from `THEORY.md` §0.
+- **Verification:** 17/17 tests pass; no dangling references; every surviving
+  document has inbound links.

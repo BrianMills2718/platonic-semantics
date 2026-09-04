@@ -8,6 +8,27 @@ inductive half — what independently trained models actually do — lives in
 Adopted 2026-09-04; see D18 in `DECISION_LOG.md`. It supersedes the theoretical
 sections of the retired handoff briefing, whose content survives in §3 and §6.
 
+## 0. Where this came from
+
+The project began from four observations, and one over-claim it exists to avoid.
+Multilingual models develop partially shared internal representations across
+languages; separately trained networks show alignable representational geometry;
+the 2024 Platonic Representation Hypothesis argues capable models may converge on
+a shared statistical representation of reality; and sperm-whale research has
+found contextual and combinatorial structure in vocalisations. These get
+over-combined into "English, Chinese, independently trained AIs and whales all
+use the same latent language," which is **not established** and is not what this
+project claims. The rigorous middle ground — shared geometry, shared
+neighbourhoods, shared transformations, and how each changes across model,
+language, layer and dataset — is the target.
+
+The founding conversation is preserved unmodified at
+`docs/origin/2026-09-04_founding_conversation.md`. It is static evidence: read it
+for intent and provenance, not as current design. Its two-ends framing is §1
+below; its warning that a scatterplot of a projected space is the wrong object is
+D17 and the atlas; its observation that ordinary concepts have no ground-truth
+geometry is §2.
+
 ## 1. The agenda has two ends
 
 **Deductive.** How should a platonic semantic space be conceptualised and
