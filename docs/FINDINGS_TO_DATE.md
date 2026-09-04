@@ -37,9 +37,18 @@ not established.
   tokenizers leaves **15 of 15** pairs significant at p=0.0005, costing about 5%
   of the effect (mean partial rho 0.2599 vs raw 0.2734) and 2% at the last
   layers. The convergence is not explained by shared spelling or tokenisation.
-- Still no *competing model*: ruling out these lexical confounds is weaker than
-  showing a static embedding model cannot reproduce the result. A fastText floor
-  is still owed.
+- **The static baseline passes too.** With fastText's aligned-vector geometry
+  regressed out, LLM-LLM agreement falls only 0.2847 -> 0.2532 (76-99% retained
+  per pair, 15/15 significant at p=0.0005). The convergence is not reducible to
+  what a 2017 static embedding model already captures.
+- **But the cross-language part is the weak part.** Same-language cross-model
+  agreement is 0.3570; cross-language is 0.2365; aligned fastText manages 0.1861
+  between the same two languages. The claim closest to "a language-independent
+  semantic space" is the one least separable from a static baseline.
+- The `--min-layer` sweep shows **no mid-depth layer is ever selected**: the
+  selector jumps from the earliest layers straight to the last and stays there,
+  flat at rho 0.187-0.200 for every cutoff from 2 to 24. The reported result does
+  not depend on the arbitrary choice of 8.
 
 ## Instrument findings
 

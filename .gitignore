@@ -14,3 +14,6 @@ __pycache__/
 
 # OS
 .DS_Store
+
+# fastText subset is regenerable via scripts/fetch_fasttext_subset.py
+data/fasttext/

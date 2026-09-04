@@ -13,11 +13,16 @@ third. Only one relation, `IsA`, survives its null and FDR correction.
 Read `docs/RUN_001_RESULTS.md` for the full write-up, including a finding that
 was not expected: at depth the systems separate **by language, not by model**.
 
-The surface-confound control passes: regressing character length, token count,
-token-id overlap and a frequency proxy out of both geometries leaves all 15 pairs
-significant, costing ~5% of the effect. So this is not shared spelling. A
-competing non-neural model (fastText) is still owed, which is a different and
-stronger test. Treat it as a lead.
+Both falsification checks pass. Regressing out surface lexical structure
+(character length, token count, token-id overlap, a frequency proxy) costs ~5% of
+the effect, so this is not shared spelling. Regressing out **fastText's** geometry
+costs ~11%, with 15/15 pairs still significant, so it is not reducible to static
+distributional semantics either.
+
+The honest caveat: same-language cross-model agreement (0.357) sits well above
+the static baseline, but **cross-language agreement (0.237) is only ~0.05 above
+what aligned fastText vectors already achieve** (0.186). The most exciting-sounding
+claim is the least supported one.
 
 Part of a wider set of "platonic" projects; the mathematics side lives in
 [`platonic-atlas-math`](https://github.com/BrianMills2718/platonic-atlas-math).

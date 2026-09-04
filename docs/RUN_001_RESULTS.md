@@ -71,10 +71,24 @@ One correction to how that run should be described. Restricting selection to
 layer >= 8 did not land it at mid-depth: it chose **layer 24, the final layer**,
 for five of six systems (XGLM/en took layer 12). That follows from the layer
 curve, which is U-shaped for BLOOM and Qwen -- agreement is high at layer 1,
-collapses through the middle, and recovers at the end. So the contrast is
-really *first layers versus last layers*, with the middle of these models
-agreeing least. Calling it a "depth" result would overstate it, and a proper
-sweep across several `--min-layer` values is the honest version of this check.
+collapses through the middle, and recovers at the end.
+
+The full sweep (`scripts/layer_sweep.py`, `layer_sweep.csv`) confirms this and
+shows the single cutoff was not a lucky choice:
+
+| min_layer | layers chosen | mean rho | pairs surviving |
+|---|---|---|---|
+| 0 | 3,3,2,2,0,11 | 0.2734 | 14/15 |
+| 2-12 | 24,24,24,24,12,24 | 0.1896 | 10/15 |
+| 14-16 | 24,24,24,24,17,24 | 0.1995 | 12/15 |
+| 18 | 24,24,24,24,18,24 | 0.2000 | 12/15 |
+| 22-24 | all 24 | 0.1866 | 11/15 |
+
+**No mid-depth layer is ever selected.** The moment the earliest layers are
+excluded the selector jumps to the last layer and stays there, and the result is
+flat at rho 0.187-0.200 across every cutoff from 2 to 24. So the contrast really
+is first-versus-last, the middle of these models agrees least, and the reported
+"deep" number is not sensitive to the arbitrary choice of 8.
 
 ## The finding that was not expected
 
@@ -153,6 +167,57 @@ in **magnitude, not existence** — Chinese pairs run 0.25-0.45 where English pa
 run 0.09-0.31. Two tests, two questions; the honest statement is that English
 agreement at depth is weak, not absent.
 
+## The static baseline (fastText)
+
+The surface control ruled out spelling. It did not rule out ordinary
+distributional semantics, which a 2017 static embedding model also has. That is
+the stronger test, and `src/static_baseline.py` runs it: fastText's aligned
+vectors become two more systems and go through the same held-out RDM machinery.
+
+Only the 78 held-out concepts fastText covers in both languages are used
+(coverage: 84/85 English, 79/85 Chinese).
+
+| comparison | n | mean rho |
+|---|---|---|
+| language model vs language model | 15 | **0.2847** |
+| fastText vs language model | 12 | 0.2190 |
+| fastText·en vs fastText·zh | 1 | 0.1861 |
+
+**With the fastText geometry regressed out, LLM-LLM agreement falls only from
+0.2847 to 0.2532 — 76-99% retained per pair, and 15 of 15 still significant at
+p=0.0005.** So the convergence is not reducible to what a static embedding model
+already captures. There is transformer-specific shared structure.
+
+### The part this deflates
+
+Splitting the LLM pairs by language changes the story:
+
+| | mean rho |
+|---|---|
+| LLM pairs, **same language** (n=6) | **0.3570** |
+| LLM pairs, **cross language** (n=9) | 0.2365 |
+| fastText·en vs fastText·zh | 0.1861 |
+
+Same-language cross-model convergence sits clearly above everything static. But
+**cross-language convergence, at 0.2365, is only about 0.05 above what aligned
+fastText vectors achieve between the same two languages.** The cross-language
+result — the part closest to "a language-independent semantic space" and the
+most interesting-sounding claim available — is the part least distinguishable
+from a static aligned baseline. It should be stated that way.
+
+### An internal check that worked
+
+`xglm·en` correlates with `fasttext·en` at **0.383**, higher than it correlates
+with most language models. That is exactly what should happen: `xglm·en` is the
+system whose selected layer was **0, the embedding matrix**. A system reduced to
+its embedding table behaves like a static embedding model. The diagnostic and
+the baseline agree about the same defect, which is some evidence both are
+measuring what they claim to.
+
+`bloom·en` sits at the other extreme, correlating with `fasttext·en` at only
+0.063 — consistent with its effective rank of 18.3, a nearly collapsed space
+whose distances carry little structure.
+
 ## Relations
 
 Only one relation survives the region-matched null and FDR correction in the
@@ -198,10 +263,11 @@ relation out of ten, in one pilot, is a lead.
 ## What this does not show
 
 - Not a Platonic semantic space, not a language-independent internal language.
-- No non-neural baseline was run. The surface-confound control above rules out
-  *these* lexical explanations, which is not the same as showing a static
-  embedding model cannot reproduce the result. A fastText or co-occurrence floor
-  is still owed.
+- The fastText baseline is Wikipedia-trained, and so are these models in part,
+  so it is a *non-transformer* baseline rather than an independent one.
+- 17 of 212 Chinese terms are absent from fastText (mostly `X的` adjective forms
+  and compounds like 计算机, 哺乳动物), so the baseline comparison runs on 78 of
+  85 held-out concepts.
 - 0.5B models, bare single words, one prompt template, one split seed, one k.
 - 2.8% of the Chinese benchmark is `<unk>` in XGLM.
 - The mid-depth cutoff of 8 was chosen after seeing the primary layers. It is a
@@ -209,10 +275,13 @@ relation out of ten, in one pilot, is a lead.
 
 ## Next, in order
 
-1. A fastText EN/ZH baseline. The lexical-confound control is done and the
-   result survives it; what remains is a competing model, not another control.
-2. Sweep `--min-layer` across several values and report the curve. The single
-   cutoff used here resolved to the final layer for most systems, so it tests
-   first-vs-last rather than depth.
+1. Prompt-averaged and contextualised stimuli instead of bare single words. Both
+   remaining weaknesses -- the cross-language result sitting near the static
+   baseline, and BLOOM's collapsed English space -- are the kind that bare
+   single-word inputs produce.
+2. A frequency- and POS-matched null, replacing mean-token-id as a frequency
+   proxy with a real corpus measurement.
+3. Replication at a larger scale, to test whether the cross-language gap over
+   the static baseline widens with model size.
 3. Prompt-averaged representations instead of bare words.
 4. Fix or exclude the six XGLM `<unk>` concepts.
