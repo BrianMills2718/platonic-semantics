@@ -16,10 +16,34 @@
     "neutral": {
       "en": "The concept is {term}.",
       "zh": "这个概念是{term}。"
+    },
+    "this_is": {
+      "en": "This is {term}.",
+      "zh": "这是{term}。"
+    },
+    "word_for": {
+      "en": "The word for this is {term}.",
+      "zh": "这个词是{term}。"
+    },
+    "thinking": {
+      "en": "I am thinking about {term}.",
+      "zh": "我在想{term}。"
+    },
+    "example": {
+      "en": "Here is an example: {term}.",
+      "zh": "这里有一个例子：{term}。"
     }
   },
   "default_prompt_mode": "bare",
   "batch_size": 16,
   "max_length": 32,
-  "knn": 10
+  "knn": 10,
+  "averaged_modes": [
+    "bare",
+    "neutral",
+    "this_is",
+    "word_for",
+    "thinking",
+    "example"
+  ]
 }
