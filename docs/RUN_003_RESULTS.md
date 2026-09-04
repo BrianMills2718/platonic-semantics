@@ -93,6 +93,40 @@ layer problem entirely. That last one matters beyond this run: risk 21 in
 `KNOWN_RISKS_AND_OPEN_QUESTIONS.md` has been open since run 001, and a stimulus
 change appears to dissolve it.
 
+## The reliability ceiling, and how much of it is used
+
+Both stimulus modes now exist for every included system, so the ceiling is
+computable. Reliability is how much of a system's own concept geometry survives
+the change of stimulus; agreement between two systems cannot exceed the geometric
+mean of theirs except by noise.
+
+| system | reliability |
+| --- | --- |
+| qwen25_05b·zh | 0.926 |
+| xglm_564m·en | 0.922 |
+| xglm_564m·zh | 0.870 |
+| qwen25_05b·en | 0.718 |
+
+**Every system clears the 0.30 floor, and no pair violates its ceiling** — the
+first time that has been true. Run 001 had three of six pairs usable and one
+system, `bloom_560m·en`, at 0.156 and unusable outright.
+
+Agreement reaches **0.505 of what was reachable**: same-language 0.601
+(raw 0.515), cross-language 0.456 (raw 0.393).
+
+The cross-language figure is the one that moved. Run 001 read same-language 0.615
+against cross-language 0.394 — a wide gap, and the basis for saying the
+cross-language claim was the weak half. Here the gap is 0.601 against 0.456, much
+narrower. Some of that is the corrected pipeline rather than context; run 001's
+figures were uncentred and included a broken system. It is a lead, not a result,
+and it is not comparable across runs for the reasons in the limits below.
+
+**Correction made while computing this.** `scripts/prompt_reliability_ceiling.py`
+was not centring, so it bounded a geometry the pipeline no longer uses and read
+about 0.10 low — it reported raw agreement of 0.331 where the analysis it is meant
+to bound reports 0.434. It now centres by default, matching D19, with `--no-center`
+retained to reproduce pre-D19 numbers. The figures above are the corrected ones.
+
 ## How this changes the earlier reading
 
 Run 002 concluded "concepts converge with scale, relations do not." The second
@@ -124,8 +158,7 @@ bare-word design, not the models, was carrying the negative finding.
   The tier directories are symlink views; build them the same way the small tier's
   were, one per tier and stimulus mode. Extraction is CPU-bound and roughly six
   times slower for the averaged mode, which is the whole cost of this run.
-- **The prompt-reliability ceiling for run 003**, now computable for every
-  included system since both stimulus modes exist.
+- ~~The prompt-reliability ceiling for run 003~~ — **done, small tier.** See below.
 - A 7B rung, still out of reach on this hardware (D20).
 
 ## Limits specific to this run

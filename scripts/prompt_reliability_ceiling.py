@@ -58,6 +58,10 @@ def main() -> int:
     ap.add_argument("--repr-dir", default="outputs/representations")
     ap.add_argument("--analysis-dir", default="outputs/analysis")
     ap.add_argument("--out", default="outputs/analysis/prompt_reliability_ceiling.csv")
+    ap.add_argument("--center", dest="center", action="store_true", default=True,
+                    help="mean-centre before the cosine RDM, matching D19 (default)")
+    ap.add_argument("--no-center", dest="center", action="store_false",
+                    help="run 001 behaviour; use only to reproduce pre-D19 numbers")
     ap.add_argument("--reliability-floor", type=float, default=0.30,
                     help="a system whose geometry survives a prompt change below this is "
                          "not a usable instrument and its pairs are reported separately")
@@ -81,7 +85,9 @@ def main() -> int:
         got = {}
         for mode, path in paths.items():
             reps = np.load(path, allow_pickle=False)["reps"].astype(np.float32)
-            got[mode] = cosine_rdm(reps[:, layer, :])
+            # Centred, to match D19's primary analysis. An uncentred ceiling would
+            # bound a geometry the pipeline does not use, and read ~0.10 low.
+            got[mode] = cosine_rdm(reps[:, layer, :], center=args.center)
         r = corr(tri_vec(sub_rdm(got["bare"], eval_idx)), tri_vec(sub_rdm(got["averaged"], eval_idx)))
         reliability[system] = r
         rdms[system] = got["bare"]
