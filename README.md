@@ -4,11 +4,19 @@ Do independently trained language models, in different languages, arrive at the
 same *shape* of semantic space — and do labelled semantic relations behave like
 reusable transformations inside it?
 
-Run 001 happened on 2026-09-03. Short answer: **partly, and less than the raw
-numbers suggest.** Held-out geometry beat its null in 14 of 15 system pairs, but
-unconstrained layer selection had parked five of six systems in the embedding
-and early layers; restricting to depth leaves 10 of 15 and cuts the effect by a
-third. Only one relation, `IsA`, survives its null and FDR correction.
+Run 001 happened on 2026-09-03, and its relation half was re-analysed on
+2026-09-04. Short answer: **partly, and not in the way first reported.** Held-out
+geometry beat its null in 14 of 15 system pairs, but unconstrained layer
+selection had parked five of six systems in the embedding and early layers;
+restricting to depth leaves 10 of 15 and cuts the effect by a third.
+
+The original relation result -- "only `IsA` survives" -- is **withdrawn**. It came
+from a statistic that is algebraically invariant to which source is paired with
+which target, so it could not have tested a transformation. What replaced it says
+something better and stranger: **seven of ten relations carry a shared
+directional component across models and languages (q = 0.0014), while not one
+relation carries pair-specific information that transfers.** The operator exists
+as a group average and not as something you could apply to a particular concept.
 
 Read `docs/RUN_001_RESULTS.md` for the full write-up, including a finding that
 was not expected: at depth the systems separate **by language, not by model**.
@@ -78,6 +86,31 @@ Outputs land in `outputs/analysis/` (gitignored). Read `system_alignment.csv`,
 
 ## What this repository gets right, and what it does not
 
+### A test must be sensitive to the thing it claims to test
+
+Three statistics were tried for the cross-system relation question and two of
+them were wrong. Each failure is now asserted by `tests/test_pairing_sensitivity.py`
+rather than described.
+
+1. **Mean-signature convergence** (`relation_convergence.csv`, the run-001
+   headline). `mean_i(d[b_i,.] - d[a_i,.])` equals
+   `mean(d[targets,.]) - mean(d[sources,.])`: the pairing cancels. Twenty pairing
+   permutations reproduce the observed `IsA` value to eight decimals. Retained as
+   descriptive; it measures agreement about a centroid direction.
+2. **Matched-versus-mismatched pair signatures under a pairing-permutation null.**
+   All ten relations cleared it at p = 0.001 -- and so did random non-relational
+   concept pairs, scoring *higher* than any real relation. It was re-measuring
+   first-order geometry agreement one pair at a time. Pair separation drives it.
+3. **The same statistic against a separation-matched null**, scored as
+   `matched - mismatched`. That subtraction penalises coherence, which is the
+   property that makes a relation a relation, so every relation scored below
+   scattered random pairs.
+
+What ships reports the two quantities separately against a separation-matched
+null: whether systems agree about a *specific* pair (they do not, beyond its
+separation), and whether a relation's pairs point the same way across systems
+(seven of ten do). See D17 in `docs/DECISION_LOG.md`.
+
 ### The null has to preserve what it is not testing
 
 The original relation null resampled every pair's replacement target
@@ -115,6 +148,12 @@ and the two core sources, and a test fails if the record drifts from the tree.
 
 ### Known limitations, stated plainly
 
+- **The headline had no denominator until 2026-09-04.** `scripts/prompt_reliability_ceiling.py`
+  measures how much of a system's geometry survives a change of prompt. One of
+  the six systems, `bloom_560m·en`, scores 0.156 and is not a usable instrument;
+  it appears in 5 of the 15 pairs behind the headline. Over the pairs where both
+  systems are reliable, agreement is 0.468 of what was reachable. A training-seed
+  ceiling (Pythia publishes same-architecture seeds) is still owed.
 - **There is no non-neural baseline yet.** The geometry null only asks "is there
   *any* shared structure", which two multilingual models trained on overlapping
   web text pass trivially — as would a word-cooccurrence matrix. Until a static
@@ -154,8 +193,10 @@ A pretty 2-D projection is not a success criterion.
 ```text
 benchmark/   concepts.csv, relations.csv
 src/         extraction, analysis, report, ConceptNet overlay
-tests/       null calibration, freeze-record drift, notebook sync (this is the CI gate)
+tests/       null calibration, pairing sensitivity, freeze-record drift, notebook
+             sync (this is the CI gate)
 scripts/     build_notebook.py -- regenerates the Colab payload from the tree
+             prompt_reliability_ceiling.py -- what agreement was achievable at all
 notebooks/   self-contained Colab run
 docs/        EXPERIMENT.md (method + output columns), runbook, references
              DECISION_LOG.md -- why the design is what it is; read before reopening a settled question

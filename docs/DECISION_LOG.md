@@ -156,3 +156,68 @@ The next milestone is:
 5. conservative interpretation;
 6. robustness;
 7. atlas only if warranted.
+
+## D17 — The cross-system relation test is replaced; D16.2 drew the wrong conclusion
+
+D16 item 2 noticed that the cross-system mean-signature statistic is "very nearly
+invariant under a pairing permutation" and concluded that the permuted-pairing
+null should be skipped there for lack of power. That reasoning inverts the
+finding. The invariance is not a property of the null. It is a property of the
+statistic, and it is exact rather than approximate:
+
+```text
+mean_i( d[b_i,.] - d[a_i,.] )  ==  mean(d[targets,.]) - mean(d[sources,.])
+```
+
+The pairing cancels algebraically. Verified 2026-09-04 by removing the
+`sig[a] = sig[b] = nan` self-exclusion and permuting the pairing: twenty
+permutations reproduce run 001's observed `IsA` value to eight decimal places
+(0.6835608). The residual sensitivity visible in the shipped code -- `IsA` at
+0.5607 observed against 0.5335 under 200 pairing shuffles -- comes entirely from
+that self-exclusion mask, an implementation artefact, and is roughly an eighth of
+the 0.230 effect that was reported over the region-matched null.
+
+So `relation_convergence.csv` never measured whether a relation is a reusable
+transformation. It measures whether systems agree about the direction from the
+source centroid to the target centroid. That is a real quantity and it stays in
+the outputs, but it cannot support the Tier 2 criterion in
+`RESULT_INTERPRETATION_PROTOCOL.md`, and run 001's relation headline should not
+have been read as evidence about `IsA` as an operator.
+
+A second consequence, found in the same check: the protocol asserted an ordering
+of null difficulty rather than measuring one. For this statistic the region-matched
+null is the *easiest* available, not the hardest. In run 001 `IsA` observed 0.561
+against a global null mean of 0.554 (p = 0.507) and a region-matched null mean of
+0.331. `IsA` failed the harder null and was reported on the easier one, which the
+protocol's own rule forbids.
+
+Decision, 2026-09-04:
+
+1. `relation_pair_correspondence.csv` becomes the primary cross-system relation
+   test. It keeps every pair's signature separate, builds
+   `M[i][j] = cos(sig_A[i], sig_B[j])` over held-out anchors for each system pair,
+   and tests the matched diagonal against the mismatched off-diagonal under a
+   pairing-permutation null. Both multisets are held exactly fixed and only the
+   correspondence moves, so the source and target sets alone cannot produce a
+   result.
+2. `relation_convergence.csv` is retained and relabelled descriptive. Its column
+   meanings are unchanged; what changed is the claim it can carry.
+3. Per-system-pair effects are written to
+   `relation_pair_correspondence_by_system.csv`, so the Tier 2 requirement "not
+   driven by one system pair" is checked rather than assumed.
+4. Null difficulty is reported from the observed null means, never asserted in
+   advance. Lead with whichever null actually ran harder.
+5. `tests/test_pairing_sensitivity.py` locks all of it in: it asserts the retired
+   statistic is pairing-invariant, that the new one is null on random geometry,
+   and that it recovers a planted correspondence.
+
+D16 items 1, 3 and 4 stand unchanged. This supersedes D16 item 2.
+
+Generalisation worth carrying to the next design: with L2-normalised vectors,
+`d(b,j) - d(a,j) = (a_hat - b_hat) . j_hat` exactly, so the "coordinate-free
+relation signature" is the classical vector-offset analogy method expressed in an
+anchor basis. It inherits that method's known failure modes, and the offset
+literature belongs in `REFERENCES.md` before the relation claim is made again.
+Before trusting any statistic that claims to test a pairing, mapping or
+correspondence, permute that correspondence while holding everything else fixed
+and confirm the number moves.

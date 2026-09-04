@@ -260,6 +260,140 @@ targets are a coherent set of superordinates (`mammal`, `tool`, `metal`,
 `emotion`...), and the region-matched null only partly controls for that. One
 relation out of ten, in one pilot, is a lead.
 
+## CORRECTION, 2026-09-04 — the relation section above is withdrawn
+
+Everything above about relations was produced by a statistic that cannot answer
+the question it was asked. `relation_convergence.csv` means the per-pair
+signatures before comparing them, and
+
+```text
+mean_i( d[b_i,.] - d[a_i,.] )  ==  mean(d[targets,.]) - mean(d[sources,.])
+```
+
+The pairing cancels exactly. Removing the `sig[a] = sig[b] = nan` self-exclusion
+and permuting which source goes with which target reproduces the observed `IsA`
+value to eight decimals (0.6835608 over 20 permutations). What little pairing
+sensitivity the shipped code showed came from that mask alone. See D17 in
+`DECISION_LOG.md`.
+
+Two consequences for the text above. "Only one relation, `IsA`, survives" was
+measuring agreement about the direction from the source centroid to the target
+centroid, not `IsA` as an operator. And `IsA` cleared the region-matched null
+while failing the global one (observed 0.561, global null mean 0.554, p = 0.507,
+region-matched null mean 0.331) -- the protocol had asserted region-matched was
+the harder of the two without measuring it, and for this statistic it is the
+easier.
+
+### The replacement, and two wrong turns on the way to it
+
+Same extraction, same seed, same split, new statistic:
+`results/run_001/reanalysis_20260904/`.
+
+The first replacement was matched-versus-mismatched pair signatures under a
+*pairing-permutation* null. All ten relations cleared it at p = 0.001 with every
+system pair positive, which was the tell: **random non-relational concept pairs
+cleared it too**, scoring 0.40-0.48 where real relations scored 0.18-0.33. It was
+re-measuring the first-order RDM agreement of `system_alignment.csv`, one pair at
+a time. The separation of a pair drives it -- two distant concepts give a large,
+well-determined difference vector both systems agree about, while a relation's
+source and target sit close together.
+
+The second wrong turn was scoring `matched - mismatched` against a
+separation-matched null. That reads a coherent relation as worse than scattered
+random pairs, because coherence *raises* the off-diagonal it subtracts. Under it
+every relation fell at or below the null, `IsA` at z = -5.2. Both failures are
+now asserted by `tests/test_pairing_sensitivity.py`.
+
+The two quantities are reported separately.
+
+**Do systems agree about a specific pair, beyond what its separation implies?**
+Null: arbitrary concept pairs held at the same cross-system mean separation.
+
+| relation | matched | null | effect | z | p |
+|---|---|---|---|---|---|
+| HasProperty | 0.628 | 0.617 | +0.011 | 0.27 | 0.404 |
+| Antonym | 0.548 | 0.546 | +0.002 | 0.05 | 0.499 |
+| Associated | 0.580 | 0.580 | +0.001 | 0.01 | 0.503 |
+| PartOf | 0.537 | 0.580 | -0.043 | -0.99 | 0.840 |
+| SimilarTo | 0.498 | 0.563 | -0.065 | -1.49 | 0.929 |
+| AtLocation | 0.483 | 0.577 | -0.094 | -2.24 | 0.986 |
+| IsA | 0.462 | 0.579 | -0.117 | -3.31 | 0.999 |
+| Causes | 0.468 | 0.602 | -0.134 | -3.29 | 0.997 |
+
+**Nothing. No relation exceeds the null, and `IsA`, `Causes` and `AtLocation` sit
+significantly below it.** Systems agree *less* about a labelled relation pair than
+about two arbitrary concepts the same distance apart.
+
+**Do the relation's own pairs point the same way, across systems?**
+Same null. This is the reusable-transformation question.
+
+| relation | coherence | null | effect | z | q |
+|---|---|---|---|---|---|
+| **HasProperty** | 0.263 | -0.000 | **+0.263** | 21.1 | 0.0014 |
+| **UsedFor** | 0.183 | -0.000 | **+0.184** | 16.5 | 0.0014 |
+| **PartOf** | 0.083 | 0.000 | +0.082 | 8.2 | 0.0014 |
+| **IsA** | 0.072 | 0.000 | +0.072 | 9.1 | 0.0014 |
+| **AtLocation** | 0.069 | -0.000 | +0.070 | 7.3 | 0.0014 |
+| **HasA** | 0.067 | -0.000 | +0.067 | 6.9 | 0.0014 |
+| **Antonym** | 0.039 | 0.000 | +0.039 | 4.5 | 0.0014 |
+| SimilarTo | 0.003 | 0.000 | +0.003 | 0.32 | 0.407 |
+| Associated | -0.000 | -0.000 | +0.000 | 0.03 | 0.482 |
+| Causes | -0.010 | -0.000 | -0.010 | -0.89 | 0.822 |
+
+**Seven of ten, all at q = 0.0014.** This is a larger and more orderly result than
+the one it replaces, and it is a different claim: seven relations carry a shared
+directional component that recurs across three independently trained models and
+two languages, while *no* relation carries pair-specific information that
+transfers. The operator exists as a group average and not as something you could
+apply to a particular concept -- which is exactly what the retired mean-signature
+statistic was measuring all along, correctly, under the wrong name.
+
+The three failures are the three whose members are least alike as a class:
+`Causes`, `Associated`, `SimilarTo`. `HasProperty` and `UsedFor` lead by a wide
+margin and both have narrow, repetitive target vocabularies, which is a warning
+as much as a result.
+
+**The honest caveat on the coherence column.** Its null is arbitrary pairs, whose
+mutual similarity is ~0 by construction, so any coherent set of pairs beats it.
+It shows the relation is coherent and that the coherence survives crossing
+systems; it does not isolate cross-system coherence from within-system coherence
+multiplied by the geometry agreement already reported in `system_alignment.csv`.
+The next test is that ratio: cross-system coherence against within-system
+coherence, per relation. Until it runs, read the coherence column as "there is a
+shared direction here", not as "the direction is model-independent".
+
+## CORRECTION, 2026-09-04 — the headline had no denominator
+
+`scripts/prompt_reliability_ceiling.py`. A held-out rho of 0.27 is
+uninterpretable without knowing what was achievable: 0.27 of a reachable 0.30 is
+near-perfect, 0.27 of a reachable 0.95 is weak, and nothing in this document
+distinguished them. Extracting the same model and language twice -- bare terms,
+and a mean over six prompt templates with the term's own tokens pooled -- bounds
+it.
+
+| system | reliability |
+|---|---|
+| qwen25_05b·zh | 0.853 |
+| qwen25_05b·en | 0.613 |
+| bloom_560m·zh | 0.577 |
+| **bloom_560m·en** | **0.156** |
+
+**`bloom_560m·en` is not a usable instrument at its selected layer.** Its geometry
+barely survives a change of prompt, and it appears in 5 of the 15 system pairs
+behind the headline. It also normalises to 1.159 against `qwen25_05b·en` -- it
+agrees with another model more than with itself -- which voids that pair rather
+than flattering it. This corroborates the effective rank of 18.3 noted above from
+an independent direction.
+
+Over the three pairs where both systems clear a 0.30 reliability floor and the
+ceiling holds, agreement is **0.468 of what was reachable**: same-language 0.615
+(raw 0.432, n=1), cross-language 0.394 (raw 0.264, n=2). The direction matches
+the fastText finding -- cross-language is the weak half -- and now has a scale.
+
+XGLM has no prompt-averaged extraction yet, so it is absent here. This is a
+stimulus-formulation reliability, not a training-seed ceiling; Pythia publishes
+same-architecture seeds and remains the better measurement.
+
 ## What this does not show
 
 - Not a Platonic semantic space, not a language-independent internal language.

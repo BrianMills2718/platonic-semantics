@@ -57,6 +57,52 @@ Why it matters:
 - objective function strongly affects consistency across datasets;
 - motivates stimulus-set robustness tests in this project.
 
+## The relation signature is the vector-offset method (added 2026-09-04)
+
+With L2-normalised vectors, `d(b,j) - d(a,j) = (a_hat - b_hat) . j_hat` exactly.
+The "coordinate-free relation signature" is therefore the classical vector-offset
+analogy method, read out in a basis of concept anchors rather than neurons. That
+reformulation is what makes it comparable across models with different hidden
+sizes, which is the point -- but it also inherits everything already known about
+offset analogies, and those results are the relevant prior art for the relation
+half of this project. See D17 in `DECISION_LOG.md`.
+
+### Levy & Goldberg — Linguistic Regularities in Sparse and Explicit Word Representations (CoNLL 2014)
+https://aclanthology.org/W14-1618/
+
+Why it matters:
+- decomposes the offset method into similarity terms, showing what an analogy
+  score is actually summing;
+- introduces 3CosMul, the standard alternative to plain vector arithmetic.
+
+### Linzen — Issues in evaluating semantic spaces using word analogies (RepEval 2016)
+https://aclanthology.org/W16-2503/
+
+Why it matters:
+- shows much of offset-analogy performance is explained by plain proximity to the
+  source or to the target, with no relation-specific structure required;
+- the baselines it proposes are the ones this project's relation claim must beat.
+
+### Schluter — The Word Analogy Testing Caveat (NAACL 2018)
+https://aclanthology.org/N18-2039/
+
+Why it matters:
+- the standard analogy protocol excludes the query words from the answer space,
+  which alone produces much of the apparent accuracy;
+- directly relevant here: `relation_signature` sets `sig[a] = sig[b] = nan`, and
+  that self-exclusion was supplying all the apparent pairing sensitivity of the
+  retired cross-system statistic.
+
+### Rogers, Drozd & Li — The (Too Many) Problems of Analogical Reasoning with Word Vectors (*SEM 2017)
+https://aclanthology.org/S17-1017/
+
+Why it matters:
+- relation-by-relation breakdown showing offset methods succeed on a narrow band
+  of relations, chiefly taxonomic and morphological, and fail elsewhere;
+- predicts the shape of run 001's relation table, `IsA` included, and is the
+  reason a surviving `IsA` needs a taxonomic-level-matched null rather than a
+  region-matched one.
+
 ## Semantic relation probe source
 
 ### ConceptNet 5 relations

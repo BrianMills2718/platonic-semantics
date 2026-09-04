@@ -425,6 +425,113 @@ def relation_cross_system_score(sigs_by_system, anchor_mask):
     return float(np.mean(vals)) if vals else np.nan
 
 
+def pair_signature_matrix(d, pairs, anchor_idx):
+    """Rows are per-pair relation signatures, centred and L2-normalised.
+
+    No self-exclusion. The retired statistic set `sig[a] = sig[b] = nan`, and that
+    exclusion turned out to supply all of its apparent pairing sensitivity --
+    exactly the artefact Schluter (2018) documents for the standard analogy
+    protocol, where excluding the query words from the answer space produces much
+    of the reported accuracy. Every pair is scored on the same anchor set instead,
+    which costs at most two of the held-out anchors per pair and removes the
+    artefact.
+    """
+    a_idx = np.asarray([a for a, _ in pairs], dtype=int)
+    b_idx = np.asarray([b for _, b in pairs], dtype=int)
+    s = d[np.ix_(b_idx, anchor_idx)] - d[np.ix_(a_idx, anchor_idx)]
+    s = s - s.mean(axis=1, keepdims=True)
+    return s / np.maximum(np.linalg.norm(s, axis=1, keepdims=True), 1e-12)
+
+
+def correspondence_effect(sig_mats):
+    """Two quantities from `M[i][j] = cos(sig_A[i], sig_B[j])`, averaged over system pairs.
+
+    `matched` is the diagonal: do two systems agree about *this* pair's signature?
+    That is the cross-system question, and its null is the same quantity for
+    arbitrary pairs held at the same separation.
+
+    `mismatched` is the off-diagonal: within one relation, do different pairs have
+    similar signatures? That is the reusable-transformation question, and a high
+    value is the property that makes a relation a relation.
+
+    They are reported separately because `matched - mismatched` conflates them and
+    penalises the second. A coherent relation raises the off-diagonal, so
+    subtracting it scores a genuine relation *below* a set of scattered random
+    pairs -- which is what happened on 2026-09-04 when every one of the ten
+    relations fell at or under a separation-matched null on the difference, `IsA`
+    at z = -5.2, while the difference for random pairs sat near 0.58.
+    """
+    systems = list(sig_mats)
+    n = sig_mats[systems[0]].shape[0]
+    off = ~np.eye(n, dtype=bool)
+    matched, mismatched, per_pair = [], [], []
+    for a, b in itertools.combinations(systems, 2):
+        m = sig_mats[a] @ sig_mats[b].T
+        mt = float(np.mean(np.diag(m)))
+        mm = float(np.mean(m[off]))
+        matched.append(mt)
+        mismatched.append(mm)
+        per_pair.append({
+            "system_a": a, "system_b": b,
+            "matched_mean": mt,
+            "mismatched_mean": mm,
+            "correspondence_effect": mt - mm,
+        })
+    stats = {
+        "matched": float(np.mean(matched)),
+        "mismatched": float(np.mean(mismatched)),
+        "effect": float(np.mean(matched) - np.mean(mismatched)),
+    }
+    return stats, per_pair
+
+
+def separation_matched_random_pairs(pairs, mean_dist, rng, tolerance=0.05):
+    """Arbitrary concept pairs separated by about as much as the observed ones.
+
+    This is the null the correspondence test needs, and the pairing-permutation
+    null is not it. Verified 2026-09-04: under a pairing-permutation null every
+    one of the ten relations cleared p = 0.001 with all 15 system pairs positive,
+    and so did random non-relational concept pairs, at 0.40-0.48 -- *higher* than
+    any real relation. That test was re-measuring the first-order RDM agreement
+    already reported in system_alignment.csv, one concept pair at a time.
+
+    The driver is separation. Two distant concepts give a large, well-determined
+    difference vector that both systems agree about; a relation's source and
+    target are semantically close, so their difference is small and noisy. A null
+    that does not hold separation fixed measures that, not the relation.
+
+    Sources and targets are drawn without reuse, matching the all-distinct
+    structure D16 imposed on the probe set.
+    """
+    n = mean_dist.shape[0]
+    iu = np.triu_indices(n, 1)
+    all_sep = mean_dist[iu]
+    out, used = [], set()
+    for a, b in pairs:
+        target_sep = float(mean_dist[a, b])
+        lo, hi = target_sep - tolerance, target_sep + tolerance
+        ok = np.where((all_sep >= lo) & (all_sep <= hi))[0]
+        if len(ok) < 4:
+            # Widen rather than fall back silently to an unmatched draw.
+            order = np.argsort(np.abs(all_sep - target_sep))
+            ok = order[:64]
+        for cand in rng.permutation(ok):
+            x, y = int(iu[0][cand]), int(iu[1][cand])
+            if x in used or y in used:
+                continue
+            if rng.random() < 0.5:
+                x, y = y, x
+            out.append((x, y))
+            used.update((x, y))
+            break
+        else:
+            raise ValueError(
+                f"No separation-matched replacement available for pair ({a}, {b}); "
+                "the candidate pool is exhausted."
+            )
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description="Analyze shared semantic geometry with held-out and null tests.")
     ap.add_argument("--repr-dir", default="outputs/representations")
@@ -739,6 +846,82 @@ def main():
     cross_df["region_matched_fdr_q"] = bh_fdr(cross_df["region_matched_permutation_p"].to_numpy())
     cross_df.to_csv(out / "relation_convergence.csv", index=False)
 
+    # THE cross-system relation test. `relation_convergence.csv` above is retained
+    # as a descriptive centroid statistic, but it is pairing-invariant and so
+    # cannot establish that a relation is a reusable transformation; see
+    # relation_pair_correspondence(). This one holds both multisets fixed and
+    # moves only the correspondence.
+    mean_dist = np.mean(np.stack([d for d in selected.values()]), axis=0)
+    corr_rows, corr_pairs = [], []
+    for rel, pairs in sorted(relpairs_all.items()):
+        if len(pairs) < 3 or len(selected) < 2:
+            continue
+
+        def mats(p):
+            return {s: pair_signature_matrix(d, p, eval_idx) for s, d in selected.items()}
+
+        observed, per_pair = correspondence_effect(mats(pairs))
+        obs_matched, obs_mismatched = observed["matched"], observed["mismatched"]
+
+        # Two nulls, and they answer different questions.
+        #  - pairing permutation asks whether the correspondence is carried by the
+        #    source and target multisets. It is not sufficient on its own: it
+        #    passes for arbitrary concept pairs, because two systems that agree
+        #    about concept geometry at all agree about any pair of concepts.
+        #  - separation-matched random pairs is the one that can distinguish a
+        #    relation from an arbitrary pair of concepts held that far apart.
+        sig_mats = mats(pairs)
+        null_matched, null_mismatched, null_pairing = [], [], []
+        for _ in range(args.permutations):
+            perm = rng.permutation(len(pairs))
+            shuffled = {s: m[perm] for s, m in sig_mats.items()}
+            first = next(iter(shuffled))
+            shuffled[first] = sig_mats[first]
+            null_pairing.append(correspondence_effect(shuffled)[0]["matched"])
+            # One draw shared by every system. Drawing per system would give each
+            # a different pair set, collapse the null, and read as a huge result.
+            drawn = separation_matched_random_pairs(pairs, mean_dist, rng)
+            ns, _ = correspondence_effect(mats(drawn))
+            null_matched.append(ns["matched"])
+            null_mismatched.append(ns["mismatched"])
+
+        effects = [p["correspondence_effect"] for p in per_pair]
+        for p in per_pair:
+            corr_pairs.append({"relation": rel, **p})
+        corr_rows.append({
+            "relation": rel, "n_pairs": len(pairs),
+            "system_pairs": len(per_pair),
+            "heldout_anchor_count": int(len(eval_idx)),
+            # Q1, cross-system: do systems agree about THIS pair's signature more
+            # than about an arbitrary pair held at the same separation?
+            "matched_mean": obs_matched,
+            "matched_separation_null_mean": float(np.nanmean(null_matched)),
+            "matched_effect_over_null": float(obs_matched - np.nanmean(null_matched)),
+            "matched_z": z_against_null(obs_matched, null_matched),
+            "matched_permutation_p": p_greater(obs_matched, null_matched),
+            # Q2, transformation: are the relation's own pairs more alike than
+            # arbitrary pairs are? This is the reusable-operator question.
+            "mismatched_mean": obs_mismatched,
+            "mismatched_separation_null_mean": float(np.nanmean(null_mismatched)),
+            "coherence_effect_over_null": float(obs_mismatched - np.nanmean(null_mismatched)),
+            "coherence_z": z_against_null(obs_mismatched, null_mismatched),
+            "coherence_permutation_p": p_greater(obs_mismatched, null_mismatched),
+            # Diagnostic only. Subtracting the off-diagonal penalises a coherent
+            # relation, so this is not a test; see correspondence_effect().
+            "matched_minus_mismatched": observed["effect"],
+            "pairing_null_matched_mean": float(np.nanmean(null_pairing)),
+            "min_system_pair_effect": float(np.min(effects)),
+            "max_system_pair_effect": float(np.max(effects)),
+            "system_pairs_with_positive_effect": int(np.sum(np.asarray(effects) > 0)),
+        })
+
+    corr_df = pd.DataFrame(corr_rows)
+    if len(corr_df):
+        corr_df["matched_fdr_q"] = bh_fdr(corr_df["matched_permutation_p"].to_numpy())
+        corr_df["coherence_fdr_q"] = bh_fdr(corr_df["coherence_permutation_p"].to_numpy())
+    corr_df.to_csv(out / "relation_pair_correspondence.csv", index=False)
+    pd.DataFrame(corr_pairs).to_csv(out / "relation_pair_correspondence_by_system.csv", index=False)
+
     # Sensitivity: all-pairs relation convergence is descriptive, not the primary test.
     descript = []
     for rel, by_system in sorted(means_all.items()):
@@ -778,7 +961,8 @@ def main():
             "system_alignment.csv: held-out RDM alignment vs concept-identity permutation null",
             "neighborhood_null_test.csv: held-out cross-system kNN stability vs relabeled-system null",
             "relation_system_scores.csv: relation consistency measured on held-out anchor dimensions vs global and region-matched random-target nulls",
-            "relation_convergence.csv: cross-system relation-signature convergence on held-out anchor dimensions vs global and region-matched nulls",
+            "relation_pair_correspondence.csv: cross-system relation test -- matched vs mismatched pair signatures on held-out anchor dimensions, vs a pairing-permutation null",
+            "relation_convergence.csv: DESCRIPTIVE ONLY. Cross-system mean-signature convergence. Pairing-invariant, so it measures agreement about the source-centroid-to-target-centroid direction and cannot establish a reusable transformation.",
         ],
         "interpretation": [
             "Layer selection is performed only on the selection concept split.",
@@ -788,6 +972,8 @@ def main():
             "Relation signatures compare distance changes only on held-out concept-anchor dimensions, not raw neuron coordinates.",
             "Relation nulls preserve the multiplicity pattern of the observed targets; a null that resamples targets independently measures target reuse, not semantics.",
             "The permuted-pairing null keeps both observed multisets exactly and is the strictest within-system relation baseline.",
+            "Cross-system: mean-signature convergence is pairing-invariant, so relation_pair_correspondence.csv is the primary cross-system relation test and relation_convergence.csv is descriptive.",
+            "Null difficulty is measured, not assumed. Report the observed null means; for the pairing-invariant statistic the global null runs harder than the region-matched one.",
             "Region-matched target nulls control for broad semantic-region membership.",
             "FDR q-values correct families of permutation tests using Benjamini-Hochberg."
         ]

@@ -62,3 +62,47 @@ If these benchmark or primary analysis choices change after seeing real headline
 - create a new experiment version;
 - record why it changed;
 - label the new analysis exploratory/corrected/replication as appropriate.
+
+## Experiment 0.1 — corrected relation analysis, 2026-09-04
+
+Created under the change rule above. Run 001's extraction, seed, split and
+geometry results are unchanged and preserved in `results/run_001/primary/`; the
+corrected relation analysis and the reliability ceiling are in
+`results/run_001/reanalysis_20260904/` and are labelled **corrected**, not a new
+run.
+
+Why it changed: the cross-system relation statistic was algebraically invariant
+to the source-target pairing and so could not test a transformation. Two
+replacements were tried and rejected before the one that ships. D17 in
+`DECISION_LOG.md` has the full account; `tests/test_pairing_sensitivity.py`
+asserts each failure.
+
+Benchmark: **unchanged.** Both hashes above still stand, and no probe, concept or
+translation was touched.
+
+### Core code SHA-256 (0.1)
+
+extract_representations.py:
+`3e1cc0eae755bcd556a888da1549166d65a49dcfe88dfde29830fb57db7878f1`
+
+analyze_semantic_geometry.py:
+`50e8c9bcb128331a27018f1d1f08ac3bb5166b1761ff7c14292765443cec0c4e`
+
+### Primary analysis changes (0.1)
+
+Added:
+- pair-signature matrices with no self-exclusion, every pair scored on the same
+  held-out anchor set;
+- separation-matched random-pair null, holding cross-system mean source-target
+  distance fixed;
+- cross-system matched-pair agreement, tested against that null;
+- cross-system relation coherence, tested against that null;
+- prompt-formulation reliability ceiling.
+
+Demoted to descriptive, retained in the outputs:
+- cross-system mean-signature convergence (`relation_convergence.csv`).
+
+Unchanged: extraction, seed 20260903, the 60/40 stratified split, cosine RDM,
+kNN k=10, the identity-permutation geometry null, the relabeled-system
+neighbourhood null, all three within-system relation nulls, bootstrap, and
+Benjamini-Hochberg FDR.
