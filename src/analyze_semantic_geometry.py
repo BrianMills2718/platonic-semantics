@@ -13,8 +13,31 @@ import pandas as pd
 from scipy.stats import rankdata, spearmanr
 
 
-def cosine_rdm(x):
+def anisotropy(x):
+    """Mean pairwise cosine over the concept set.
+
+    Near 1 means every concept points the same way and the RDM is being read from
+    the last sliver of the cosine range. Run 001 hit 0.997 for bloom_560m|zh at
+    layer 24. Reported beside every selected layer per D19, never inferred.
+    """
     x = np.asarray(x, dtype=np.float32)
+    x = x / np.maximum(np.linalg.norm(x, axis=1, keepdims=True), 1e-12)
+    g = x @ x.T
+    return float(g[np.triu_indices(len(g), 1)].mean())
+
+
+def cosine_rdm(x, center=False):
+    """Cosine distance geometry over concepts.
+
+    `center` subtracts the concept mean first. D19 makes that the primary choice:
+    the dominant common direction in language-model space carries frequency and
+    length rather than concept identity, which is the confound lexical_controls
+    targets. Run 001's frozen outputs were computed with center=False, so the
+    default stays False and the pipeline passes the choice explicitly.
+    """
+    x = np.asarray(x, dtype=np.float32)
+    if center:
+        x = x - x.mean(axis=0, keepdims=True)
     x = x / np.maximum(np.linalg.norm(x, axis=1, keepdims=True), 1e-12)
     d = 1.0 - x @ x.T
     np.fill_diagonal(d, 0.0)
@@ -543,6 +566,10 @@ def main():
     ap.add_argument("--selection-frac", type=float, default=0.60)
     ap.add_argument("--min-layer", type=int, default=0,
                     help="restrict layer selection to layer >= this (sensitivity analysis)")
+    ap.add_argument("--center", dest="center", action="store_true", default=True,
+                    help="mean-centre representations before the cosine RDM (D19 primary)")
+    ap.add_argument("--no-center", dest="center", action="store_false",
+                    help="run 001 behaviour; a labelled sensitivity, never the headline")
     ap.add_argument("--seed", type=int, default=20260903)
     ap.add_argument("--permutations", type=int, default=250)
     ap.add_argument("--bootstrap", type=int, default=500)
@@ -592,7 +619,7 @@ def main():
 
     # Every layer's representational distance geometry.
     layer_rdms = {
-        s: [cosine_rdm(x[:, li, :]) for li in range(x.shape[1])]
+        s: [cosine_rdm(x[:, li, :], center=args.center) for li in range(x.shape[1])]
         for s, x in reps.items()
     }
 
@@ -941,6 +968,13 @@ def main():
     summary = {
         "systems": meta,
         "selected_layers": {s: int(chosen[s]) for s in chosen},
+        "centered": bool(args.center),
+        "selected_layer_anisotropy": {
+            s: round(anisotropy(reps[s][:, chosen[s], :]), 4) for s in chosen
+        },
+        "degenerate_layer_flag": sorted(
+            s for s in chosen if anisotropy(reps[s][:, chosen[s], :]) > 0.95
+        ),
         "concepts": len(ids),
         "selection_concepts": int(len(selection_idx)),
         "evaluation_concepts": int(len(eval_idx)),

@@ -36,10 +36,18 @@ which is now `scripts/qc_representations.py`.
    that says nothing about meaning, inside the matrix the whole comparison rests
    on. `study` is now 研究, and a test forbids shared surface forms.
 
-A third, bounded and not fixed: **six Chinese terms (哺乳动物, 鲸, 锤子, 钥匙 and
-two others) tokenise to `<unk>` in XGLM only**, 2.8% of the benchmark, making
-them mutually indistinguishable in that one system. 鲸 (whale) and 烹饪 (cook)
-sit at cosine 1.000000. Qwen and BLOOM cover the set fully.
+A third, bounded and not fixed: **six Chinese terms contain an `<unk>` token in
+XGLM only** — 哺乳动物 (mammal), 鲸 (whale), 锤子 (hammer), 钥匙 (key), 烹饪
+(cook) and 谬误 (falsehood) — 2.8% of the benchmark. Qwen and BLOOM cover the set
+fully.
+
+**Corrected 2026-09-04.** This previously said all six were "mutually
+indistinguishable". Re-measured against the tokenizer, only **two** are: 鲸 and
+烹饪 reduce entirely to `<unk>`, so they are byte-identical inputs and sit at
+cosine 1.000000. The other four keep one or two resolved content tokens and
+retain partial signal. The defect is a fifth the size the original wording
+implied, and it is identical at every XGLM scale in run 002 because the
+tokenizer does not change with model size.
 
 ## The headline number, and why it needs its caveat
 

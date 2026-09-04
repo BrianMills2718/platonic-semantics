@@ -297,3 +297,69 @@ rather than before. It passes, and the record it requires is below.
   `docs/origin/2026-09-04_founding_conversation.md` and routed from `THEORY.md` §0.
 - **Verification:** 17/17 tests pass; no dangling references; every surviving
   document has inbound links.
+
+## D19 — Run 002 is a scale ladder, and its preprocessing is fixed before the data
+
+Run 001 leaves the project's central question forked (`THEORY.md` §7). Either
+there is no shared global structure at this level of description, or 0.5B models
+on bare single words sit below the resolution where it appears. The Platonic
+Representation Hypothesis predicts the second, since convergence is claimed to
+rise with capability. Nothing in run 001 separates them, and almost every other
+open item is downstream of which one is true.
+
+Run 002 tests it: three families at three scales, two languages.
+
+| family | small | mid | large |
+| --- | --- | --- | --- |
+| Qwen2.5 | 0.5B | 1.5B | 3B |
+| BLOOM | 560m | 1b7 | 3b |
+| XGLM | 564M | 1.7B | 2.9B |
+
+Within-family comparison controls architecture and training data, isolating
+scale. Cross-family comparison at each tier is the convergence measurement. The
+0.5B tier is run 001, reused unchanged.
+
+### Preprocessing, decided now rather than after
+
+Risks 21 and 22 would otherwise confound the whole comparison: if larger models
+have different anisotropy, a scale effect and a preprocessing artefact are
+indistinguishable. So the choices are fixed here, in advance.
+
+1. **Representations are mean-centred before the cosine RDM.** On principle, not
+   on fit: the dominant common direction in language-model representation space
+   is known to carry frequency and length rather than concept identity, and that
+   is exactly the confound `lexical_controls.py` targets. Uncentred is retained
+   as a labelled sensitivity, never as the headline.
+   **Disclosure:** the direction this moves run 001 has already been seen
+   (centering raises most pairs; removing the top principal component lowers
+   several and raises one). So this is preregistered with respect to run 002's
+   *new* data only, and the run-001 recomputation under it is a re-analysis, not
+   a prediction.
+2. **Anisotropy is reported, not silently inherited.** The mean pairwise cosine
+   of every selected layer is recorded beside its result. Any system whose
+   selected layer exceeds 0.95 is flagged in the output: its rank ordering is
+   being read from under 5% of the cosine range.
+3. **The reliability floor is enforced.** Every system needs a prompt-reliability
+   of at least 0.30 (`scripts/prompt_reliability_ceiling.py`) to enter the
+   headline. Systems below it are reported separately, as `bloom_560m|en` is.
+4. **Everything else is unchanged from run 001** — seed, split fraction, k,
+   permutation and bootstrap counts, and every null.
+
+### The prediction, stated before the numbers exist
+
+Raw agreement is the weak discriminator: bigger models share more training data,
+so cross-family agreement could rise for mundane reasons under either reading.
+The lattice account in `THEORY.md` predicts something more specific.
+
+**If reading (b) is right** — models are coarsenings and 0.5B is below the
+resolution — then with scale: nesting recovery rises monotonically (currently
+5.9% to 22.9% depending on clustering resolution), and per-pair relation transfer
+becomes non-zero for at least one relation, where it is currently zero of ten.
+
+**If reading (a) is right**, cross-family agreement may drift up while nesting
+stays flat and per-pair transfer stays at zero.
+
+Nesting and per-pair transfer are therefore the primary outcomes. Raw held-out
+agreement is secondary and will not settle the fork on its own. A flat nesting
+curve across a six-fold scale range is a real negative result for the lattice
+account and should be reported as one.
