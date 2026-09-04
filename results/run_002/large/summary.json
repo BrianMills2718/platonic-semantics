@@ -1,0 +1,106 @@
+{
+  "systems": {
+    "bloom_3b|en": {
+      "model": "bloom_3b",
+      "language": "en"
+    },
+    "bloom_3b|zh": {
+      "model": "bloom_3b",
+      "language": "zh"
+    },
+    "qwen25_3b|en": {
+      "model": "qwen25_3b",
+      "language": "en"
+    },
+    "qwen25_3b|zh": {
+      "model": "qwen25_3b",
+      "language": "zh"
+    },
+    "xglm_29b|en": {
+      "model": "xglm_29b",
+      "language": "en"
+    },
+    "xglm_29b|zh": {
+      "model": "xglm_29b",
+      "language": "zh"
+    }
+  },
+  "selected_layers": {
+    "bloom_3b|en": 5,
+    "bloom_3b|zh": 5,
+    "qwen25_3b|en": 33,
+    "qwen25_3b|zh": 33,
+    "xglm_29b|en": 21,
+    "xglm_29b|zh": 25
+  },
+  "centered": true,
+  "selected_layer_anisotropy": {
+    "bloom_3b|en": 0.6999,
+    "bloom_3b|zh": 0.6952,
+    "qwen25_3b|en": 0.7536,
+    "qwen25_3b|zh": 0.7974,
+    "xglm_29b|en": 0.9693,
+    "xglm_29b|zh": 0.9872
+  },
+  "degenerate_layer_flag": [
+    "xglm_29b|en",
+    "xglm_29b|zh"
+  ],
+  "concepts": 212,
+  "selection_concepts": 127,
+  "evaluation_concepts": 85,
+  "selection_fraction": 0.6,
+  "min_layer": 0,
+  "relations": 145,
+  "relation_types": [
+    "Antonym",
+    "Associated",
+    "AtLocation",
+    "Causes",
+    "HasA",
+    "HasProperty",
+    "IsA",
+    "PartOf",
+    "SimilarTo",
+    "UsedFor"
+  ],
+  "knn": 10,
+  "seed": 20260903,
+  "permutations": 1000,
+  "bootstrap_replicates": 2000,
+  "heldout_mean_neighborhood_stability": 0.25704479217529297,
+  "heldout_neighborhood_permutation_p": 0.000999000999000999,
+  "consensus_projection_positive_eigenvalue_fraction_2d": 0.2170162607523277,
+  "relation_target_reuse_ratio": {
+    "Antonym": 1.0,
+    "Associated": 1.0,
+    "AtLocation": 1.0,
+    "Causes": 1.0,
+    "HasA": 1.0,
+    "HasProperty": 1.0,
+    "IsA": 1.0,
+    "PartOf": 1.0,
+    "SimilarTo": 1.0,
+    "UsedFor": 1.0
+  },
+  "primary_tests": [
+    "system_alignment.csv: held-out RDM alignment vs concept-identity permutation null",
+    "neighborhood_null_test.csv: held-out cross-system kNN stability vs relabeled-system null",
+    "relation_system_scores.csv: relation consistency measured on held-out anchor dimensions vs global and region-matched random-target nulls",
+    "relation_pair_correspondence.csv: cross-system relation test -- matched vs mismatched pair signatures on held-out anchor dimensions, vs a pairing-permutation null",
+    "relation_convergence.csv: DESCRIPTIVE ONLY. Cross-system mean-signature convergence. Pairing-invariant, so it measures agreement about the source-centroid-to-target-centroid direction and cannot establish a reusable transformation."
+  ],
+  "interpretation": [
+    "Layer selection is performed only on the selection concept split.",
+    "Headline convergence statistics are evaluated only on held-out concepts.",
+    "Consensus display coordinates may use all concepts after layers are fixed, but 2D projection is not itself evidence.",
+    "Permutation tests destroy the proposed correspondence while preserving the geometry of each system.",
+    "Relation signatures compare distance changes only on held-out concept-anchor dimensions, not raw neuron coordinates.",
+    "Relation nulls preserve the multiplicity pattern of the observed targets; a null that resamples targets independently measures target reuse, not semantics.",
+    "The permuted-pairing null keeps both observed multisets exactly and is the strictest within-system relation baseline.",
+    "Cross-system: mean-signature convergence is pairing-invariant, so relation_pair_correspondence.csv is the primary cross-system relation test and relation_convergence.csv is descriptive.",
+    "Null difficulty is measured, not assumed. Report the observed null means; for the pairing-invariant statistic the global null runs harder than the region-matched one.",
+    "Region-matched target nulls control for broad semantic-region membership.",
+    "FDR q-values correct families of permutation tests using Benjamini-Hochberg."
+  ]
+}

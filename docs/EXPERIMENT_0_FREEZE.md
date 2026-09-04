@@ -106,3 +106,56 @@ Unchanged: extraction, seed 20260903, the 60/40 stratified split, cosine RDM,
 kNN k=10, the identity-permutation geometry null, the relabeled-system
 neighbourhood null, all three within-system relation nulls, bootstrap, and
 Benjamini-Hochberg FDR.
+
+## Experiment 0.2 — the scale ladder, 2026-09-04
+
+Created under the change rule. Run 001's extraction and frozen outputs are
+untouched in `results/run_001/`; run 002 is a new extraction at three scales and
+is labelled a new experiment version, not a re-analysis.
+
+Why it changed: D19. Run 001 left the project's central question forked, and
+nothing in it separated "no shared global structure" from "0.5B is below the
+resolution where it shows".
+
+Benchmark: **unchanged.** Both hashes above still stand; no probe, concept or
+translation was touched.
+
+### Core code SHA-256 (0.2)
+
+extract_representations.py:
+`3e1cc0eae755bcd556a888da1549166d65a49dcfe88dfde29830fb57db7878f1`
+
+analyze_semantic_geometry.py:
+`545427d502ed5f307ff00a48180a97b89b5746a6bbf00a9f51a8bc21c63467f3`
+
+### Model set (0.2)
+
+Nine models, three families at three scales, two languages each.
+
+| family | small | mid | large |
+| --- | --- | --- | --- |
+| Qwen2.5 | 0.5B | 1.5B | 3B |
+| BLOOM | 560m | 1b7 | 3b |
+| XGLM | 564M | 1.7B | 2.9B |
+
+### Analysis changes (0.2)
+
+- representations are mean-centred before the cosine RDM (`--center`, D19 primary);
+  `--no-center` reproduces run 001 behaviour as a labelled sensitivity;
+- `anisotropy()` is computed for every selected layer and written to
+  `summary.json`, with any system above 0.95 listed in `degenerate_layer_flag`;
+- `separation_matched_random_pairs` widens exhaustively over the full
+  separation-ordered candidate list instead of a fixed 64-entry window. The
+  truncated window emptied on the centred small tier and aborted the run;
+  it raised rather than silently drawing an unmatched pair, which is why the
+  defect was visible at all.
+
+### Extraction changes (0.2)
+
+- dtype is bfloat16 for all nine models so precision does not covary with scale.
+  This required re-extracting the small tier, whose run-001 tensors were float32.
+  bfloat16 keeps float32's exponent range, so the float16 NaN that hit BLOOM in
+  run 001 cannot recur; all 18 tensors are verified finite.
+
+Unchanged: seed 20260903, the 60/40 stratified split, k=10, 1000 permutations,
+2000 bootstrap replicates, and every null.

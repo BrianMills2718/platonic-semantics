@@ -1,0 +1,16 @@
+system_a,system_b,selection_spearman_rho
+bloom_3b|en,bloom_3b|zh,0.1736056826818939
+bloom_3b|en,qwen25_3b|en,0.36880802179628125
+bloom_3b|en,qwen25_3b|zh,0.15022282127638636
+bloom_3b|en,xglm_29b|en,0.2663025440247641
+bloom_3b|en,xglm_29b|zh,0.16309418244280774
+bloom_3b|zh,qwen25_3b|en,0.35178200777494123
+bloom_3b|zh,qwen25_3b|zh,0.6454823418708607
+bloom_3b|zh,xglm_29b|en,0.3959066303136787
+bloom_3b|zh,xglm_29b|zh,0.5927409246644025
+qwen25_3b|en,qwen25_3b|zh,0.4529895474700053
+qwen25_3b|en,xglm_29b|en,0.5112598943453184
+qwen25_3b|en,xglm_29b|zh,0.38104324574355786
+qwen25_3b|zh,xglm_29b|en,0.4615412377824398
+qwen25_3b|zh,xglm_29b|zh,0.6095979580737172
+xglm_29b|en,xglm_29b|zh,0.4526201765302494

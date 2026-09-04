@@ -1,5 +1,24 @@
 # FINDINGS TO DATE
 
+## Run 002 happened on 2026-09-04 — scale ladder
+
+Nine models, three families at three scales (0.5B / 1.6B / 3B), two languages,
+eighteen systems. Preregistered in D19. Full write-up in `RUN_002_RESULTS.md`.
+
+- **Nesting rises with scale.** Recovery toward perfect nesting goes 34.4% →
+  39.0% → 39.1% at 20 clusters, monotone at all five resolutions tested, 15/15
+  pairs beating the null in every cell, and holding under average, complete and
+  ward linkage. This is the lattice account's own prediction and it survived.
+- **Per-pair relation transfer stays at zero.** 0 of 10 relations significant at
+  every tier. Best p improves 0.199 → 0.188 → 0.093 without crossing. Six-fold
+  scale did not make a relation portable.
+- **Group-level coherence replicates and stays flat**: 7 of 10 relations at every
+  tier, mean effect 0.082 → 0.077 → 0.093.
+- **Raw agreement drifts up**: mean held-out rho 0.369 → 0.371 → 0.398, 15/15
+  pairs beating the null throughout; kNN stability 0.235 → 0.250 → 0.257.
+- **Net:** concepts converge with scale, relations do not. Neither reading of the
+  run-001 fork wins outright.
+
 ## Run 001 happened on 2026-09-03
 
 Superseding this document's previous headline, which said no real

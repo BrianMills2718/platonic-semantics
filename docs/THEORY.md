@@ -181,11 +181,29 @@ they are distinguishable by experiment:
 - **(b)** 0.5B models on bare single words sit below the resolution at which
   shared global structure appears.
 
-The Platonic Representation Hypothesis literature predicts (b), since convergence
-is claimed to rise with capability. Testing it requires larger models and is open
-question 5 in `KNOWN_RISKS_AND_OPEN_QUESTIONS.md`. Until that runs, neither
-reading is supported over the other, and this document should not be read as
-favouring one.
+**Answered in part, 2026-09-04.** Run 002 tested this over a six-fold scale range
+— three families at 0.5B, 1.6B and 3B — with the prediction written down in D19
+before any tensor existed. `RUN_002_RESULTS.md` has the full table.
+
+The prediction was half met, and the half that failed is the one that matters
+most to this document. Nesting rises monotonically with scale at every clustering
+resolution and under three linkage methods, which is what (b) predicts and what
+the lattice account needs. But per-pair relation transfer stayed at **zero of ten
+relations at every tier**, which is what (a) predicts; the best p-value improved
+from 0.199 to 0.093 without crossing.
+
+So the fork is not resolved, and the split runs along a seam the frame did not
+anticipate: **concepts converge with scale, relations do not.** Larger models
+agree more about which things belong together, and agree in a more *nested* way —
+consistent with being coarsenings of one structure — while remaining unable to
+transport a specific relation instance between them. §4's claim that each kind of
+probe induces its own refinement survives; the hope that a relation is itself a
+portable operation does not, at any scale tested.
+
+This is recorded here as a partial answer, not a resolution. Reporting it as
+support for (b) would mean ignoring the outcome D19 named as primary alongside
+nesting. The measurement that would settle it is a 7B rung, the next size all
+three families publish.
 
 ## 8. How this document could be wrong
 

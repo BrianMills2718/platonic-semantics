@@ -534,11 +534,16 @@ def separation_matched_random_pairs(pairs, mean_dist, rng, tolerance=0.05):
         target_sep = float(mean_dist[a, b])
         lo, hi = target_sep - tolerance, target_sep + tolerance
         ok = np.where((all_sep >= lo) & (all_sep <= hi))[0]
-        if len(ok) < 4:
-            # Widen rather than fall back silently to an unmatched draw.
-            order = np.argsort(np.abs(all_sep - target_sep))
-            ok = order[:64]
-        for cand in rng.permutation(ok):
+        ok = rng.permutation(ok)
+        # Widening must be exhaustive, not a fixed window. Drawing sequentially
+        # without reuse means late pairs face a thinned pool, and a truncated
+        # fallback list can be entirely consumed by already-used concepts -- which
+        # is what emptied the pool on the centred small tier of run 002. Falling
+        # back to the full separation-ordered candidate list keeps the match as
+        # close as possible while guaranteeing a draw exists whenever any unused
+        # pair does.
+        widened = np.argsort(np.abs(all_sep - target_sep))
+        for cand in itertools.chain(ok, widened):
             x, y = int(iu[0][cand]), int(iu[1][cand])
             if x in used or y in used:
                 continue
@@ -550,7 +555,7 @@ def separation_matched_random_pairs(pairs, mean_dist, rng, tolerance=0.05):
         else:
             raise ValueError(
                 f"No separation-matched replacement available for pair ({a}, {b}); "
-                "the candidate pool is exhausted."
+                f"{len(used)} of {n} concepts already drawn and no unused pair remains."
             )
     return out
 

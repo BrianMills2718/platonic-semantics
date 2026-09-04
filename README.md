@@ -202,7 +202,8 @@ docs/        THEORY.md -- what "platonic semantic space" is taken to mean, and
              the predictions that follow; read before the results
              EXPERIMENT.md -- method and output columns; REFERENCES.md -- prior art
              REAL_RUN_RUNBOOK.md -- how to actually run it (local GPU, ~2 min)
-             RUN_001_RESULTS.md -- the run, and the two corrections to it
+             RUN_001_RESULTS.md -- the first run, and the two corrections to it
+             RUN_002_RESULTS.md -- the scale ladder, and the half-met prediction
              DECISION_LOG.md -- why the design is what it is; read before reopening a settled question
              FINDINGS_TO_DATE.md -- what is actually known, with what has been withdrawn
              KNOWN_RISKS_AND_OPEN_QUESTIONS.md -- 26-item review checklist, 6 open from 2026-09-04
