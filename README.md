@@ -13,8 +13,11 @@ third. Only one relation, `IsA`, survives its null and FDR correction.
 Read `docs/RUN_001_RESULTS.md` for the full write-up, including a finding that
 was not expected: at depth the systems separate **by language, not by model**.
 
-No non-neural baseline exists yet, so none of this is separated from the trivial
-explanation. Treat it as a lead.
+The surface-confound control passes: regressing character length, token count,
+token-id overlap and a frequency proxy out of both geometries leaves all 15 pairs
+significant, costing ~5% of the effect. So this is not shared spelling. A
+competing non-neural model (fastText) is still owed, which is a different and
+stronger test. Treat it as a lead.
 
 Part of a wider set of "platonic" projects; the mathematics side lives in
 [`platonic-atlas-math`](https://github.com/BrianMills2718/platonic-atlas-math).

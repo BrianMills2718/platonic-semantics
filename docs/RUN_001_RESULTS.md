@@ -108,6 +108,51 @@ middle, and recover at the last layers. XGLM peaks at **layer 16** (0.273) —
 the mid-depth profile you would want to see. The three models do not agree about
 where cross-language structure lives.
 
+## The surface-confound control
+
+The identity-permutation null only asks whether *any* shared structure exists.
+It cannot tell shared meaning from shared spelling: two tokenizers that split
+words alike, and two models that encode string length or token frequency, agree
+for reasons with nothing to do with semantics. "14 of 15 pairs beat the null" is
+exactly what a purely lexical explanation would also produce.
+
+`src/lexical_controls.py` separates them. For each pair it builds surface RDMs
+from properties obtainable without any model — character length, token count,
+token-id overlap, and mean token id as a frequency-rank proxy, for *both*
+systems' tokenizers — regresses all of it out of both geometries, and correlates
+the residuals against a permutation null.
+
+| configuration | pairs surviving (p<=.05) | mean raw rho | mean partial rho |
+|---|---|---|---|
+| primary (layers 0-3) | **15 / 15** | 0.2734 | 0.2599 |
+| last layers (>= 8) | **15 / 15** | 0.1896 | 0.1856 |
+
+Removing surface structure costs about **5%** of the effect in the primary
+configuration and **2%** at the last layers. Several pairs go *up*, meaning
+surface structure was slightly suppressing their agreement. The controls are not
+vacuous — the surface RDMs correlate with the representational geometries at rho
+up to 0.46 — they simply are not what the systems agree about.
+
+So the trivial explanation is substantially ruled out for the geometry result.
+That is the single most important number in this run.
+
+**What this is not.** It is a confound control, not a competing model. Showing
+that these surface features do not explain the agreement is a weaker claim than
+showing that a static embedding model like fastText fails to reproduce it. The
+non-neural baseline in the next-steps list is still owed, and this does not
+substitute for it. The frequency proxy is also a proxy: mean token id is
+defensible for frequency-ordered vocabularies but is not a corpus measurement.
+
+### This refines the language asymmetry
+
+The earlier claim that English cross-model pairs "lose significance at depth"
+was specific to the identity-permutation null. Under the surface control, at
+last layers, they survive: `bloom·en vs qwen·en` at partial rho 0.119 and
+`bloom·en vs xglm·en` at 0.117, both p=0.0005. The asymmetry is real but it is
+in **magnitude, not existence** — Chinese pairs run 0.25-0.45 where English pairs
+run 0.09-0.31. Two tests, two questions; the honest statement is that English
+agreement at depth is weak, not absent.
+
 ## Relations
 
 Only one relation survives the region-matched null and FDR correction in the
@@ -153,10 +198,10 @@ relation out of ten, in one pilot, is a lead.
 ## What this does not show
 
 - Not a Platonic semantic space, not a language-independent internal language.
-- No non-neural baseline was run. The identity-permutation null only asks
-  whether *any* shared structure exists; a static-embedding or co-occurrence
-  floor would ask the question that matters. Until that exists these numbers
-  cannot be compared against the trivial explanation.
+- No non-neural baseline was run. The surface-confound control above rules out
+  *these* lexical explanations, which is not the same as showing a static
+  embedding model cannot reproduce the result. A fastText or co-occurrence floor
+  is still owed.
 - 0.5B models, bare single words, one prompt template, one split seed, one k.
 - 2.8% of the Chinese benchmark is `<unk>` in XGLM.
 - The mid-depth cutoff of 8 was chosen after seeing the primary layers. It is a
@@ -164,8 +209,8 @@ relation out of ten, in one pilot, is a lead.
 
 ## Next, in order
 
-1. A fastText EN/ZH baseline and a lexical-confound RDM (token length,
-   frequency). Without it the headline is not falsifiable.
+1. A fastText EN/ZH baseline. The lexical-confound control is done and the
+   result survives it; what remains is a competing model, not another control.
 2. Sweep `--min-layer` across several values and report the curve. The single
    cutoff used here resolved to the final layer for most systems, so it tests
    first-vs-last rather than depth.

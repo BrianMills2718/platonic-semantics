@@ -32,8 +32,14 @@ not established.
 - The restricted-layer re-analysis selected the **final** layer for five of six
   systems, not a mid-depth one. These models agree most at their first and last
   layers and least in the middle.
-- No non-neural baseline has been run, so none of this is yet separated from the
-  trivial explanation.
+- **The surface-confound control passes.** Regressing out character length,
+  token count, token-id overlap and a frequency-rank proxy from both systems'
+  tokenizers leaves **15 of 15** pairs significant at p=0.0005, costing about 5%
+  of the effect (mean partial rho 0.2599 vs raw 0.2734) and 2% at the last
+  layers. The convergence is not explained by shared spelling or tokenisation.
+- Still no *competing model*: ruling out these lexical confounds is weaker than
+  showing a static embedding model cannot reproduce the result. A fastText floor
+  is still owed.
 
 ## Instrument findings
 
