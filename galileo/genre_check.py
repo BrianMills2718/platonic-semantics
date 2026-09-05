@@ -51,7 +51,15 @@ def main() -> int:
     args = ap.parse_args()
 
     from text_space import load_posts
-    rows = {"people": [p["text"] for p in load_posts(args.shard, theme="Politics")[:6000]]}
+    # Random sample, not the first N rows. Parquet row order is not arbitrary --
+    # taking the head gave a mean post length of 37.7 words against 32.0 for a
+    # random sample of the same size, and that 18% inflation was enough on its own
+    # to flag people as a register outlier on length. Sampled with a fixed seed so
+    # the table is reproducible.
+    import random as _random
+    _people = load_posts(args.shard, theme="Politics")
+    rows = {"people": [p["text"] for p in
+                       _random.Random(20260905).sample(_people, min(6000, len(_people)))]}
     for spec in args.corpus:
         name, _, path = spec.partition("=")
         rows[name] = [json.loads(l)["text"]

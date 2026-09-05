@@ -71,16 +71,23 @@ Each of these could have produced the result on its own if omitted.
 
   | | mean words | first person | questions | numbers |
   | --- | --- | --- | --- | --- |
-  | people | 37.7 | 44% | 16.2% | 22.6% |
+  | people | 31.9 | 38% | 16.9% | 22.5% |
   | openai | 25.7 | 37% | 5.8% | 2.7% |
   | deepseek | 24.5 | 55% | 16.0% | 12.6% |
   | zhipu | 31.0 | 57% | 10.7% | 18.6% |
 
-  OpenAI asks questions a third as often as DeepSeek and uses numbers a fifth as
+  OpenAI asks questions a third as often as DeepSeek and uses numerals a fifth as
   often as Zhipu. Yet those two pairs agree semantically at 0.66 and 0.64. If a
   shared register were producing the convergence, models that visibly differ in
   register should not cluster this tightly — so register is not a sufficient
-  explanation. It is not fully excluded either: these are surface features, and
+  explanation.
+
+  *An earlier version of this table sampled the first 6,000 human posts in file
+  order rather than at random, which inflated their mean length from 31.9 to 37.7
+  words and made people look like a length outlier. Parquet row order is not
+  arbitrary. The sampling is fixed and the numbers above are the corrected ones;
+  the argument is unchanged, because it rests on differences among the models
+  rather than on the human row.* It is not fully excluded either: these are surface features, and
   a deeper shared "assistant-ness" would not show up in them.
 
   The clean test is still a base model, which is why one was attempted (below).
