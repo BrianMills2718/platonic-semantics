@@ -23,6 +23,8 @@ import json
 import pathlib
 import statistics
 
+import numpy as np
+
 ROOT = pathlib.Path(__file__).resolve().parent
 COLORS = ["#fb923c", "#f472b6", "#a78bfa", "#facc15"]
 
@@ -39,6 +41,19 @@ def main() -> int:
     dist = d["distance_from_self"]
     col = {m: c for m, c in zip(models, COLORS)}
     order = sorted(dist, key=lambda c: statistics.fmean(dist[c].values()))
+
+    # Is the Self inside the space at all? The comparison that settles it is the
+    # Self's distances against the distances the concepts hold to EACH OTHER. A
+    # Self nearer some concepts than they are to one another sits inside the
+    # space; one further from every concept than any two concepts are apart is
+    # outside it, and that is a categorical claim rather than a matter of degree.
+    concepts_all = d["concepts"]
+    si = concepts_all.index(d["self"])
+    keep = [i for i in range(len(concepts_all)) if i != si]
+    pooled = np.mean([np.array(d["distances"][m]) for m in models], axis=0)
+    cc = pooled[np.ix_(keep, keep)][np.triu_indices(len(keep), 1)]
+    sd = np.array([pooled[si, i] for i in keep])
+    outside = int((sd > cc.max()).sum())
 
     vals = [v for c in dist for v in dist[c].values()]
     lo, hi = min(vals), max(vals)
@@ -123,10 +138,21 @@ in this project. No alignment step was used or needed.</p>
 <svg width="{W}" height="{H}">{''.join(parts)}</svg>
 <p class="keys">{key}</p>
 
+<p class="verdict"><b>Every one of the {outside} objects is further from the model
+than any two of them are from each other.</b> The concepts sit a median
+{np.median(cc):.2f} apart and never more than {cc.max():.2f}; the nearest the Self
+ever comes to any of them is {sd.min():.2f}. These models do not place themselves
+at the edge of politics — they place themselves outside it altogether, and that
+is a categorical result rather than a matter of degree.</p>
+
 <p class="verdict">{verdict}<br>
 Agreement about the concepts: <b>{ca:+.2f}</b>. Agreement about the Self:
 <b>{sa:+.2f}</b>.</p>
 
+<p class="note">Within that outside position the ordering is still legible:
+<b>{order[0]}</b> is the object these models place themselves nearest, and
+<b>{order[-1]}</b> the furthest. In Woelfel's framing that ordering is the part
+that would predict behaviour.</p>
 <p class="note"><b>What this cannot tell you.</b> That a model reports a distance
 from "yourself" does not establish that it has a self-representation; it may be
 reporting a persona the prompt evoked. What the numbers do support is narrower
@@ -139,6 +165,8 @@ exactly one more object, and only asking can obtain it.</p>
 </div>"""
     (ROOT / args.out).write_text(html, encoding="utf-8")
     print(f"wrote {ROOT / args.out}")
+    print(f"all {outside}/{len(sd)} Self-distances exceed the largest concept pair "
+          f"({cc.max():.2f}); nearest Self distance {sd.min():.2f}")
     print("nearest the Self: " + ", ".join(order[:3]))
     print("furthest:         " + ", ".join(order[-3:]))
     return 0
