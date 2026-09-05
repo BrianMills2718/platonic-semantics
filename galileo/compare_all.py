@@ -58,6 +58,9 @@ def main() -> int:
     ap.add_argument("--vocab-size", type=int, default=10)
     ap.add_argument("--window", type=int, default=25)
     ap.add_argument("--max-context", type=int, default=3000)
+    ap.add_argument("--match", choices=("tokens", "concepts"), default="tokens",
+                    help="equalise total content tokens, or occurrences of the shared "
+                         "concepts -- the quantity PPMI actually counts")
     ap.add_argument("--out", default="results/all_corpora.json")
     args = ap.parse_args()
 
@@ -90,6 +93,37 @@ def main() -> int:
         raise RuntimeError(f"only {len(vocab)} concepts are frequent in every corpus; "
                            "the corpora are not describable over one shared vocabulary")
     print(f"shared concepts ({len(vocab)}): {', '.join(vocab)}")
+
+    vset = set(vocab)
+
+    def occurrences(posts):
+        return sum(sum(1 for w in tokenize(p["text"]) if w in vset) for p in posts)
+
+    dens = {k: 1000 * occurrences(v) / max(content_tokens(v), 1) for k, v in corpora.items()}
+    print("\nconcept density (shared-vocabulary hits per 1,000 content tokens):")
+    for k, v in dens.items():
+        print(f"  {k:<10s} {v:>7.1f}")
+    print(f"  spread: {max(dens.values())/max(min(dens.values()),1e-9):.2f}x between "
+          "the densest and sparsest corpus")
+
+    if args.match == "concepts":
+        # Equal tokens is not equal evidence. PPMI is estimated from concept
+        # occurrences, so a corpus that mentions the shared concepts more often
+        # gets more data for the same token budget, and a density gradient can
+        # masquerade as a semantic one.
+        def take_occurrences(posts, target):
+            out, tot = [], 0
+            for p in posts:
+                out.append(p)
+                tot += sum(1 for w in tokenize(p["text"]) if w in vset)
+                if tot >= target:
+                    return out
+            raise RuntimeError(f"only {tot:,} concept occurrences available, need {target:,}")
+
+        cbudget = min(occurrences(v) for v in corpora.values())
+        corpora = {k: take_occurrences(v, cbudget) for k, v in corpora.items()}
+        print(f"\nre-cut to {cbudget:,} concept occurrences each "
+              f"(tokens now {', '.join(f'{content_tokens(v):,}' for v in corpora.values())})")
 
     iu = np.triu_indices(len(vocab), 1)
     D = {k: space(v, vocab, args.window, args.max_context) for k, v in corpora.items()}
@@ -154,7 +188,7 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({
         "vocab": vocab, "window": args.window, "max_context": args.max_context,
-        "matched_content_tokens": budget,
+        "matched_content_tokens": budget, "match_mode": args.match,
         "n_posts": {k: len(v) for k, v in corpora.items()},
         "ceiling": {k: float(v) for k, v in ceiling.items()},
         "pairwise": {f"{a}|{b}": float(v) for (a, b), v in pair.items()},

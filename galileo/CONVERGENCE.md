@@ -55,6 +55,25 @@ Each of these could have produced the result on its own if omitted.
 4. **A per-corpus reliability ceiling**, split-half and Spearman–Brown corrected,
    so every agreement number is read against what sampling noise alone permits.
 5. **One identical instrument** for all four corpora — same code, same settings.
+6. **Matched on concept occurrences as well as on tokens.** PPMI is estimated from
+   occurrences of the shared concepts, not from tokens, and these corpora differ in
+   how densely they use them — 34.8 hits per 1,000 content tokens for people
+   against 53.1 for DeepSeek, a 1.53× spread. Matching tokens alone therefore
+   hands the denser corpora more evidence, and a density gradient could
+   masquerade as a semantic one. Re-matching on equal concept occurrences
+   (`--match concepts`) leaves the result essentially unchanged:
+
+   | | model ↔ model | model ↔ people | gap |
+   | --- | --- | --- | --- |
+   | matched on tokens | 0.686 | 0.207 | +0.480 |
+   | matched on concept occurrences | 0.669 | 0.190 | +0.479 |
+
+   The weakest model–model pair (0.56) still beats the strongest model–people
+   pair (0.31). Data: `results/all_corpora_concepts.json`.
+
+   This control was added after it nearly overturned a different result in this
+   project — see `SENTIMENT_DIMENSION.md`, where the same density gradient tracked
+   the effect being measured and had to be removed before the finding could stand.
 
 ## What would break this
 
