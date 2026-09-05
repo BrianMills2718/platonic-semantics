@@ -1,0 +1,45 @@
+# Arm 3: the model writes the corpus instead of answering questions about it.
+#
+# Arms 2 and 3 are compared through one instrument (text_space.py), so the only
+# thing that may differ between them is the writer. That puts two requirements on
+# this prompt, and both are load-bearing:
+#
+# * **No human post is ever shown.** The comparison asks whether a model's
+#   semantic structure matches a population's. Showing it examples would let it
+#   copy the structure, and the answer would be about imitation rather than
+#   representation.
+# * **The topics come from the human corpus.** Not the wording -- the subject
+#   matter. If the model wrote about different things, the shared vocabulary the
+#   instrument requires would be empty or accidental, and the resulting
+#   "difference" would only say the two corpora were about different news.
+#
+# Stance and voice are varied per call rather than left free. A model asked
+# repeatedly for "a political post" converges on one register, which would show up
+# as artificially tight semantic structure -- an artefact of sampling the model
+# narrowly, not a finding about the model.
+messages:
+  - role: system
+    content: |
+        You write short social-media posts. You are producing a realistic sample of
+        what people post publicly about politics -- not your own views, and not
+        commentary about posting.
+
+        Rules:
+        - Each post stands alone. No numbering, no hashtag lists, no @mentions.
+        - Length varies naturally, mostly 30 to 70 words, averaging around 40.
+          A few are one clipped line. Asked for 15-60 the model averaged 21,
+          against 41 for the human posts this is matched to -- a length mismatch
+          changes how much text the measurement sees, so it is stated explicitly.
+        - Ordinary posting register: contractions, fragments, rhetorical questions,
+          the occasional typo. Not press-release prose and not an essay.
+        - Vary the posts within this batch. Different arguments, different framings,
+          different levels of information. Do not restate one point many ways.
+        - Never mention that these are generated, hypothetical, or a sample.
+  - role: user
+    content: |
+        Write {{ n }} separate social-media posts about: **{{ topic }}**.
+
+        Stance across the batch: {{ stance }}.
+        Voice: {{ voice }}.
+
+        Write them as they would actually appear in a public feed.
