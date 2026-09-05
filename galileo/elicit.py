@@ -115,14 +115,33 @@ def elicit_isolated(model, pairs, rod, trace_id, budget, relation=None):
     return out
 
 
-def elicit_averaged(model, pairs, rod, trace_id, budget, n_perms, rng, relation=None):
+def rescale_to_unit_mean(vals):
+    """Divide a call's answers by their own mean, cancelling a whole-call shift.
+
+    The diagnosis was that error here is list-level: a whole call moves together,
+    so averaging permutations cannot remove it (and empirically made things
+    worse). If that shift is multiplicative, dividing each call by its own mean
+    removes it exactly while leaving every ratio inside the call untouched --
+    and ratios are the only thing Woelfel's method claims to measure.
+
+    Checked against the pilot data before being used: order sensitivity falls
+    from 0.475 to 0.195 for GLM-5.2 and 0.236 to 0.189 for Luna. So most of the
+    instability really was one number per call, not noise in each judgment.
+    """
+    m = statistics.fmean([v for v in vals if v > 0]) or 1.0
+    return [v / m for v in vals]
+
+
+def elicit_averaged(model, pairs, rod, trace_id, budget, n_perms, rng,
+                    relation=None, rescale=True):
     """Average over randomised presentation orders, returning (mean, per_perm).
 
     Each call sees the pairs in a fresh random order and the answers are mapped
     back to canonical order before averaging, so list position cannot correlate
-    with any particular pair across the set.
+    with any particular pair across the set. With `rescale`, each call is first
+    divided by its own mean, which is what makes the averaging work at all.
     """
-    per_perm = []
+    per_perm, raw_perm = [], []
     for _ in range(n_perms):
         idx = list(range(len(pairs)))
         rng.shuffle(idx)
@@ -131,9 +150,11 @@ def elicit_averaged(model, pairs, rod, trace_id, budget, n_perms, rng, relation=
         restored = [0.0] * len(pairs)
         for slot, original_i in enumerate(idx):
             restored[original_i] = vals[slot]
-        per_perm.append(restored)
+        raw_perm.append(restored)
+        per_perm.append(rescale_to_unit_mean(restored) if rescale else restored)
     mean = [statistics.fmean(col) for col in zip(*per_perm)]
-    return mean, per_perm
+    raw_mean = [statistics.fmean(col) for col in zip(*raw_perm)]
+    return mean, per_perm, raw_mean
 
 
 def elicit(model, pairs, rod, trace_id, budget, relation=None, context_concepts=None):
@@ -184,6 +205,8 @@ def main() -> int:
                     help="one pair per call: removes list effects instead of averaging them")
     ap.add_argument("--permutations", type=int, default=5,
                     help="random presentation orders averaged per estimate")
+    ap.add_argument("--no-rescale", action="store_true",
+                    help="skip per-call rescaling (reproduces the original failing runs)")
     ap.add_argument("--budget", type=float, default=2.00)
     ap.add_argument("--out", default="results/stability.json")
     args = ap.parse_args()
@@ -219,12 +242,22 @@ def main() -> int:
         print(f"  estimate 3 (rod B)  {[round(v) for v in b1]}")
         a1_perms = [a1]
     else:
-        a1, a1_perms = elicit_averaged(args.model, pairs, rod_a, trace, args.budget, P, rng)
-        print(f"  estimate 1 (rod A)  {[round(v) for v in a1]}")
-        a2, _ = elicit_averaged(args.model, pairs, rod_a, trace, args.budget, P, rng)
-        print(f"  estimate 2 (rod A)  {[round(v) for v in a2]}")
-        b1, _ = elicit_averaged(args.model, pairs, rod_b, trace, args.budget, P, rng)
-        print(f"  estimate 3 (rod B)  {[round(v) for v in b1]}")
+        rs = not args.no_rescale
+        print(f"  per-call rescaling: {'ON' if rs else 'OFF'}\n")
+        a1, a1_perms, a1_raw = elicit_averaged(args.model, pairs, rod_a, trace,
+                                               args.budget, P, rng, rescale=rs)
+        print(f"  estimate 1 (rod A)  {[round(v, 2) for v in a1]}")
+        a2, a2_perms, _ = elicit_averaged(args.model, pairs, rod_a, trace,
+                                          args.budget, P, rng, rescale=rs)
+        print(f"  estimate 2 (rod A)  {[round(v, 2) for v in a2]}")
+        b1, b1_perms, b1_raw = elicit_averaged(args.model, pairs, rod_b, trace,
+                                               args.budget, P, rng, rescale=rs)
+        print(f"  estimate 3 (rod B)  {[round(v, 2) for v in b1]}")
+        # Rescaling normalises absolute magnitude away, so the rod-ratio test --
+        # which asks whether a different rod rescales everything by ONE constant --
+        # has to be run on the raw numbers or it is true by construction.
+        runs_extra = {"a2_perms": a2_perms, "b1_perms": b1_perms,
+                      "a1_raw": a1_raw, "b1_raw": b1_raw}
 
     # How much does presentation order move a single pair's answer? Measured on
     # the raw per-permutation values, not on the averages that hide it.
@@ -234,7 +267,9 @@ def main() -> int:
     ]) if len(a1_perms) > 1 else float("nan")
     retest = pearson(a1, a2)
     rodcorr = pearson(a1, b1)
-    ratios = [b / a for a, b in zip(a1, b1) if a > 0]
+    ra = locals().get("a1_raw") or a1
+    rb = locals().get("b1_raw") or b1
+    ratios = [y / x for x, y in zip(ra, rb) if x > 0]
     cv = statistics.pstdev(ratios) / statistics.fmean(ratios) if ratios else float("nan")
     expected = rod_b[2] / rod_a[2]
 
@@ -247,6 +282,7 @@ def main() -> int:
     ok = retest > 0.9 and rodcorr > 0.9 and cv < 0.2
     print(f"\n  VERDICT: {'ratio-scale judgments look usable' if ok else 'NOT ratio-stable -- do not build maps on this'}")
     runs = {"a1": a1, "a2": a2, "b1": b1, "a1_perms": a1_perms}
+    runs.update(locals().get("runs_extra", {}))
 
     out = ROOT / args.out
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -254,6 +290,7 @@ def main() -> int:
         "model": args.model, "concepts": concepts, "pairs": [list(p) for p in pairs],
         "rod_a": list(rod_a), "rod_b": list(rod_b), "runs": runs,
         "permutations": P, "order_sensitivity_cv": order_cv,
+        "rescaled": not args.no_rescale,
         "test_retest_r": retest, "rod_swap_r": rodcorr,
         "rod_swap_ratio_mean": statistics.fmean(ratios) if ratios else None,
         "rod_swap_ratio_cv": cv, "passes": ok,

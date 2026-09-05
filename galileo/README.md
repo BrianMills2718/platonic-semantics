@@ -16,16 +16,50 @@ comparable. It would also supply the two things the activation-based route
 cannot: a **self-point** (ask the model where *it* sits among the objects) and an
 **actionable inverse**.
 
-## Status: the instrument does not currently support the method
+## Status: the instrument works, after two fixes
 
-Before building any map, `elicit.py --check-stability` tests whether a model's
-magnitude judgments are actually ratio-scale. They are not, at least as elicited
-here, and the failure reproduces across two unrelated model families.
+Before building any map, `elicit.py` tests whether a model's magnitude judgments
+are actually ratio-scale. **They now pass**, after applying two of the four
+remedies this file had listed as untried:
+
+| | first pilot | after the fix | wanted |
+| --- | --- | --- | --- |
+| test–retest r | 0.827 | **0.929** | > 0.9 |
+| rod-swap r | 0.773 | **0.948** | > 0.9 |
+| rod ratio CV | 0.151 | **0.077** | < 0.2 |
+
+The two changes, in order of how much they mattered:
+
+**1. Rescale every call by its own mean.** The diagnosis below was that the error
+is *list-level* — a whole call shifts together — which is why averaging
+permutations made things worse rather than better. If that shift is
+multiplicative, dividing each call by its own mean removes it exactly while
+leaving untouched every ratio inside the call, and ratios are the only thing the
+method claims to measure. Checked against the stored pilot data before being
+used: order sensitivity falls from 0.475 to 0.195 for GLM-5.2 and 0.236 to 0.189
+for Luna.
+
+**2. More permutations.** Five was never enough to average a per-call effect once
+that effect was removable. Twenty-five carries test–retest from 0.890 to 0.929.
+
+The rod-ratio test is computed on **raw** magnitudes, not rescaled ones. Rescaling
+normalises absolute size away, so a ratio test run on rescaled values reads 1.0
+by construction and proves nothing.
+
+### Why this matters more than it looks
+
+The whole point of Galileo is that respondents are *asked*. An earlier detour
+inferred distances from word co-occurrence in text instead, which is exactly the
+second-hand inference the method exists to replace, and it quietly abandoned the
+ratio scale that makes two respondents' numbers comparable without alignment.
+That route is still useful for people, who cannot be interviewed — but for models
+there is no reason to settle for it, and this instrument is the reason.
 
 | condition | test–retest r | rod-swap r | rod ratio CV |
 | --- | --- | --- | --- |
 | Luna, batched, **same order both runs** | 0.900 | 0.928 | 0.122 |
-| Luna, batched, 5 randomised orders | **0.827** | 0.773 | 0.151 |
+| Luna, batched, 5 randomised orders | 0.827 | 0.773 | 0.151 |
+| **Luna, 25 orders, per-call rescaling** | **0.929** | **0.948** | **0.077** |
 | Luna, one pair per call **+ concept set shown** | 0.511 | 0.525 | 0.407 |
 | Luna, **one pair per call** | 0.417 | 0.211 | 1.702 |
 | GLM-5.2, batched, 5 randomised orders | 0.758 | 0.786 | 0.171 |
