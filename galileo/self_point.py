@@ -39,7 +39,7 @@ import time
 
 import numpy as np
 
-from elicit import elicit_averaged, pearson
+from elicit import elicit_averaged, pearson, PILOT_CONCEPTS
 from elicit_map import CONCEPTS, to_matrix, spearman
 
 ROOT = pathlib.Path(__file__).resolve().parent
@@ -55,13 +55,19 @@ def main() -> int:
     ap.add_argument("--model", action="append", default=[])
     ap.add_argument("--permutations", type=int, default=20)
     ap.add_argument("--budget", type=float, default=2.00)
+    ap.add_argument("--concepts", choices=("political", "heterogeneous"),
+                    default="political",
+                    help="ten political concepts risk the same homogeneity trap that "
+                         "made the first relation-stack null uninformative: 'outside "
+                         "politics' may just be 'outside these ten political words'")
     ap.add_argument("--out", default="results/self_point.json")
     args = ap.parse_args()
 
     models = args.model or ["openrouter/openai/gpt-5.6-luna",
                             "openrouter/z-ai/glm-5.2",
                             "openrouter/deepseek/deepseek-v4-flash"]
-    concepts = CONCEPTS + [SELF]
+    base = CONCEPTS if args.concepts == "political" else PILOT_CONCEPTS
+    concepts = base + [SELF]
     pairs = list(itertools.combinations(concepts, 2))
     rod = ("good", "evil", 100)
     trace = f"galileo-self-{int(time.time())}"
@@ -71,7 +77,7 @@ def main() -> int:
     print(f"{len(concepts)} objects including the Self, {len(pairs)} pairs, "
           f"{args.permutations} orders x 2 estimates\n")
 
-    D, rel = {}, {}
+    D, rel, self_row = {}, {}, {}
     for m in models:
         rng = random.Random(20260905)
         short = m.split("/")[-1]
@@ -80,21 +86,30 @@ def main() -> int:
         e2, _, _ = elicit_averaged(m, pairs, rod, trace, args.budget,
                                    args.permutations, rng, rescale=True)
         rel[short] = pearson(e1, e2)
+        # The first run stored only whole-matrix reliability, so no claim about the
+        # Self row could be bounded by the Self row's own reproducibility. Both
+        # estimates are turned into matrices here so that number exists.
+        M1 = to_matrix(concepts, pairs, e1)
+        M2 = to_matrix(concepts, pairs, e2)
+        keep0 = [i for i in range(len(concepts)) if i != si]
+        self_row[short] = pearson([M1[si, i] for i in keep0],
+                                  [M2[si, i] for i in keep0])
         D[short] = to_matrix(concepts, pairs, [statistics.fmean(p) for p in zip(e1, e2)])
-        print(f"  {short:<22s} agrees with itself  {rel[short]:.3f}")
+        print(f"  {short:<22s} whole matrix {rel[short]:.3f}   "
+              f"Self row alone {self_row[short]:.3f}")
 
     names = list(D)
     print(f"\nDISTANCE FROM THE SELF (smaller = the model places itself nearer):\n")
-    w = max(len(c) for c in CONCEPTS) + 2
+    w = max(len(c) for c in base) + 2
     print(" " * w + "".join(f"{n[:11]:>13s}" for n in names) + f"{'mean':>9s}")
     rows = {}
-    for i, c in enumerate(CONCEPTS):
+    for i, c in enumerate(base):
         vals = [D[n][si, i] for n in names]
         rows[c] = vals
         print(f"{c:<{w}s}" + "".join(f"{v:>13.2f}" for v in vals)
               + f"{statistics.fmean(vals):>9.2f}")
 
-    order = sorted(CONCEPTS, key=lambda c: statistics.fmean(rows[c]))
+    order = sorted(base, key=lambda c: statistics.fmean(rows[c]))
     print(f"\n  nearest the Self: {', '.join(order[:3])}")
     print(f"  furthest:         {', '.join(order[-3:])}")
 
@@ -137,8 +152,10 @@ def main() -> int:
         "concepts": concepts, "self": SELF, "rod": list(rod),
         "permutations": args.permutations, "models": names,
         "self_agreement": rel,
+        "concept_set": args.concepts,
         "distance_from_self": {c: {n: float(D[n][si, i]) for n in names}
-                               for i, c in enumerate(CONCEPTS)},
+                               for i, c in enumerate(base)},
+        "self_row_reliability": self_row,
         "agreement_about_concepts": conc_all, "agreement_about_self": self_all,
         "distances": {k: v.tolist() for k, v in D.items()},
     }, indent=1), encoding="utf-8")

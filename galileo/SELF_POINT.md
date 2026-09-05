@@ -1,4 +1,4 @@
-# The Self: three models place themselves outside politics, and disagree about where
+# The Self: three models hold themselves apart from politics — and only from politics
 
 **The Self is Woelfel's most consequential object.** It is not special machinery
 — it is judged against the same rod as everything else (*"how far apart are you
@@ -9,7 +9,35 @@ brand nearer a person's Self held the larger market share.
 
 Figure: `results/self_point.html`. Data: `results/self_point.json`.
 
-## Result 1 — the Self is outside the space, categorically
+> **Corrected after a second run.** This document first reported that the models
+> place themselves outside the concept space, full stop. Rerun on a heterogeneous
+> concept set that claim fails completely: **0 of 8** Self-distances exceed the
+> largest concept pair, against **10 of 10** on the political set. The models sit
+> comfortably inside an ordinary semantic space. What they hold apart from is
+> *politics*. That is a narrower claim and a more interesting one, and the
+> original was an artifact of measuring the Self against ten concepts that were
+> all political — the same stimulus-homogeneity trap that produced a bogus null
+> in `RELATION_STACK.md`.
+
+## Result 1 — the Self is outside POLITICS, and inside everything else
+
+| | concepts to each other | Self to them | Self beyond the largest concept pair |
+| --- | --- | --- | --- |
+| ten political concepts | median 0.85, max 1.30 | 1.36 – 1.73 | **10 of 10** |
+| eight heterogeneous concepts | median 1.01, max 1.32 | 0.79 – 1.25 | **0 of 8** |
+
+On `dog, wolf, hammer, hospital, anger, justice, river, democracy` the models
+place themselves *inside* the space, nearer than the median concept pair to
+several objects: **justice** at 0.79 is the closest, then **dog** and **anger**;
+furthest are **hammer**, **wolf** and **river**.
+
+Set beside the political result, the reading is specific: these models do not
+hold themselves apart from meaning in general. They hold themselves apart from
+**politics**. A plausible mechanism is instruction tuning, which explicitly
+trains distance from partisan positions — but nothing here tests that, and it
+should be read as the obvious hypothesis rather than a finding.
+
+## The original framing, kept for provenance
 
 Ten political concepts sit a median **0.85** apart and never more than **1.30**.
 The nearest any model places itself to any of them is **1.36**.
@@ -26,7 +54,20 @@ and it holds within each model separately, not only pooled:
 These models do not place themselves at the edge of politics. They place
 themselves *outside* it — a categorical result, not a matter of degree.
 
-## Result 2 — they agree about politics, not about themselves
+## Result 2 — the disagreement about the Self does NOT replicate
+
+On the political set the models agreed about the concepts (+0.872) far more than
+about their own position (+0.632), and this document called that a disagreement
+specifically about the Self. **On the heterogeneous set it disappears**: +0.678
+about the concepts, +0.603 about the Self — no difference the instrument can
+resolve. Result 2 is therefore political-specific too, or was noise.
+
+One thing did improve. This run stored both estimates separately, so the Self row
+now has its own reliability rather than borrowing the whole matrix's:
+**0.85 – 0.98**. The Self is well measured; it is the *comparison across models*
+that does not survive the change of stimulus.
+
+## The original political-set numbers, kept for provenance
 
 | | agreement |
 | --- | --- |
