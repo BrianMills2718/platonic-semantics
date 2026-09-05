@@ -45,6 +45,7 @@ import time
 import numpy as np
 
 from elicit import elicit_averaged, pearson
+from elicit import PILOT_CONCEPTS
 from elicit_map import CONCEPTS, to_matrix, spearman
 
 ROOT = pathlib.Path(__file__).resolve().parent
@@ -71,16 +72,24 @@ def main() -> int:
     ap.add_argument("--model", default="openrouter/openai/gpt-5.6-luna")
     ap.add_argument("--permutations", type=int, default=12)
     ap.add_argument("--budget", type=float, default=2.00)
+    ap.add_argument("--concepts", choices=("political", "heterogeneous"),
+                    default="political",
+                    help="the political set makes the relations near-synonymous -- "
+                         "'power' and 'who benefits' barely differ for `government` "
+                         "and `party` -- so a null result there is uninformative. The "
+                         "heterogeneous pilot set is where they can come apart.")
     ap.add_argument("--out", default="results/relation_stack.json")
     args = ap.parse_args()
 
-    pairs = list(itertools.combinations(CONCEPTS, 2))
+    concepts = CONCEPTS if args.concepts == "political" else PILOT_CONCEPTS
+    pairs = list(itertools.combinations(concepts, 2))
     rod = ("good", "evil", 100)
     trace = f"galileo-relations-{int(time.time())}"
-    iu = np.triu_indices(len(CONCEPTS), 1)
+    iu = np.triu_indices(len(concepts), 1)
 
     print(f"{args.model}")
-    print(f"{len(CONCEPTS)} concepts, {len(pairs)} pairs, {len(RELATIONS)} relations, "
+    print(f"{args.concepts} set: {len(concepts)} concepts, {len(pairs)} pairs, "
+          f"{len(RELATIONS)} relations, "
           f"{args.permutations} orders x 2 estimates each\n")
 
     D, rel = {}, {}
@@ -92,7 +101,7 @@ def main() -> int:
                                    args.permutations, rng, relation=r, rescale=True)
         name = label(r)
         rel[name] = pearson(e1, e2)
-        D[name] = to_matrix(CONCEPTS, pairs, [statistics.fmean(p) for p in zip(e1, e2)])
+        D[name] = to_matrix(concepts, pairs, [statistics.fmean(p) for p in zip(e1, e2)])
         print(f"  {name:<34s} agrees with itself  {rel[name]:.3f}")
 
     names = list(D)
@@ -136,7 +145,8 @@ def main() -> int:
     out = ROOT / args.out
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({
-        "model": args.model, "concepts": CONCEPTS, "rod": list(rod),
+        "model": args.model, "concept_set": args.concepts, "concepts": concepts,
+        "rod": list(rod),
         "relations": [label(r) for r in RELATIONS],
         "permutations": args.permutations,
         "self_agreement": rel, "ceiling": ceiling, "cross_relation": cross,

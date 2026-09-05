@@ -1,5 +1,10 @@
 # Arms 2 and 3: people vs a model, one instrument
 
+> **Superseded twice.** `CONVERGENCE.md` extends this to three models, and
+> `ASKED_VS_COUNTED.md` then shows the whole text route measures this project's
+> prompt grid rather than the models. Kept for provenance; do not cite the model
+> half as evidence about models.
+
 **Result: a language model asked to post about politics does not organise those
 concepts the way people writing about them do.** Agreement between the two is
 **0.30**, against a ceiling of **0.84** — where the ceiling is how well each

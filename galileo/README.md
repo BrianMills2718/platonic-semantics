@@ -154,9 +154,19 @@ across 103 calls**.
 
 ## Where this sits
 
-Arm 1 of three. The intended comparison is: models asked directly (here), people
-inferred from their own social-media writing, and models writing social-media
-posts inferred the same way. Arms 2 and 3 share an instrument, so any difference
-between them isolates the entity rather than the elicitation — and neither of
-them depends on the magnitude-estimation problem above, since both read distances
-out of text rather than asking for them.
+**Arm 1 is now the primary instrument for models**, which reverses what this
+section previously said.
+
+The original plan was three arms: models asked directly (here), people inferred
+from their own social-media writing, and models writing social-media posts
+inferred the same way. When arm 1 failed its first validity check the project
+moved to text inference for models too — and that was wrong twice over. It
+discarded the ratio scale that lets two respondents be compared without
+alignment, and it applied to models an inference method whose whole justification
+is that its subject *cannot be interrogated*.
+
+Asking and counting turn out to be unrelated: ρ = 0.010 on identical concepts
+(`ASKED_VS_COUNTED.md`). Direct elicitation is also far the better instrument —
+self-agreement 0.974 against 0.750. So arm 1 leads, text inference is retained
+for people, who cannot be interviewed, and the programme is in
+`../docs/GALILEO_PROGRAMME.md`.
