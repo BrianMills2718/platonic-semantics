@@ -63,14 +63,34 @@ Each of these could have produced the result on its own if omitted.
   not because of anything deeper. This experiment cannot separate those, and that
   is its single largest weakness.
 * **Shared post-training style.** All three are instruction-tuned assistants
-  asked to write posts. Some of the convergence may be assistant register —
-  hedged, balanced, explanatory — rather than semantic structure. A base model
-  without instruction tuning would be the test.
+  asked to write posts, so some of the convergence could be assistant register
+  rather than semantic structure.
+
+  **Partly answered, and the answer favours the result.** `genre_check.py`
+  measures surface register directly, and the three models are *not* alike on it:
+
+  | | mean words | first person | questions | numbers |
+  | --- | --- | --- | --- | --- |
+  | people | 37.7 | 44% | 16.2% | 22.6% |
+  | openai | 25.7 | 37% | 5.8% | 2.7% |
+  | deepseek | 24.5 | 55% | 16.0% | 12.6% |
+  | zhipu | 31.0 | 57% | 10.7% | 18.6% |
+
+  OpenAI asks questions a third as often as DeepSeek and uses numbers a fifth as
+  often as Zhipu. Yet those two pairs agree semantically at 0.66 and 0.64. If a
+  shared register were producing the convergence, models that visibly differ in
+  register should not cluster this tightly — so register is not a sufficient
+  explanation. It is not fully excluded either: these are surface features, and
+  a deeper shared "assistant-ness" would not show up in them.
+
+  The clean test is still a base model, which is why one was attempted (below).
 * **The prompt is common to all three.** They received identical topics, stances
   and voices. That is required for comparability but does impose shared
   structure; how much is unmeasured.
 
-Those are the three experiments this result most needs, in that order.
+Those are the three experiments this result most needs, in that order. The
+second is partly addressed above; the base-model attempt is documented in
+`BASE_MODEL_ATTEMPT.md`.
 
 ## Honest limits
 
