@@ -64,7 +64,7 @@ Only P1 is on the critical path; the outcome is unobserved until it lands.
 | P3 | the self-point: where the model places itself among the objects | a respondent cannot rate themselves on the same rod without priming | ready |
 | P4 | motion and the formal inverse: which message moves an object where you want it | needs the same respondent re-surveyed after every candidate message | design required |
 | P5 | scale: hundreds of concepts | 100 concepts is 4,950 pairs | conditional on P1 |
-| P6 | **bridge the routes**: one open instruct model, one shared concept set, measured both by elicitation and from activations | — | blocked on a model that fits locally |
+| P6 | **bridge the routes on the Self**: one open instruct model, first-person tokens in the concept list, comparing the activation of "yourself" against the elicited Self-point | — | blocked on a model that fits locally |
 
 **Dependency types.** P1 `hard` on the working instrument (satisfied). P2, P3
 `optional` — independent, either order. P4 `exploration_required`: "a message"

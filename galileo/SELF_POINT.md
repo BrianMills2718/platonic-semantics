@@ -41,12 +41,53 @@ Ordering within that outside position is still legible: nearest is **vote**, the
 **state** and **party**; furthest is **war**, then **world** and **biden**. In
 Woelfel's framing that ordering is the part that would predict behaviour.
 
-## Why no other route here can produce this
+## Can the activations route reach the Self? — corrected
 
-Activations give a geometry of concepts with no place in it for the model.
-Word co-occurrence gives whatever the text happened to mention. The Self-point
-costs exactly one more object, and **only asking can obtain it**. This is the
-clearest case for the interrogative route in the whole project.
+An earlier version of this document said activations "give a geometry of
+concepts with no place in it for the model". **That is wrong.** The extraction
+pipeline takes an arbitrary concept list (`--concepts`), so `yourself`, `me` or
+`I` can be pushed through and given an activation exactly like any other word.
+Nothing prevents it, and the existing 212-concept set already carries `machine`,
+`computer` and `person`.
+
+The real distinction is narrower and worth stating properly. Feeding "yourself"
+through a model yields its representation of **the English word** — the concept
+of self-reference, which every model learned from broadly similar text and which
+should therefore look broadly similar across models. The elicited Self is the
+model answering **as an agent** about its own position. Whether those are the
+same thing is an open question, not a settled one.
+
+**One piece of evidence that they may differ**, from data already in hand. If the
+Self were simply a shared word, three models should agree about it roughly as
+well as they agree about other shared words. Per-object cross-model agreement:
+
+| object | agreement | | object | agreement |
+| --- | --- | --- | --- | --- |
+| government | +0.947 | | world | +0.855 |
+| president | +0.943 | | vote | +0.851 |
+| party | +0.911 | | country | +0.851 |
+| biden | +0.907 | | war | +0.657 |
+| state | +0.887 | | **yourself** | **+0.632** |
+| power | +0.859 | | | |
+
+The Self is the single most disputed object. **The margin over `war` is only
+0.025**, so this is suggestive rather than decisive — but it is the direction
+predicted if the Self indexes something model-specific rather than a shared
+lexical meaning.
+
+## The experiment this opens
+
+Put first-person tokens into the activations concept list and compare the
+activation-derived position of "yourself" against the elicited Self-point, in one
+model measured both ways. If they coincide, the elicited Self is the word and
+nothing more. If they diverge, the two routes are measuring different things and
+the interrogative one reaches something activations do not.
+
+This is a sharper version of the route-bridging phase (P6 in
+`../docs/GALILEO_PROGRAMME.md`) than comparing 212 generic concepts, because the
+Self is exactly where the two routes would most plausibly come apart. It carries
+the same blocker: an open instruct model small enough to run locally, since
+activations need weights and magnitude estimation needs instruction-following.
 
 ## Limits, stated plainly
 
