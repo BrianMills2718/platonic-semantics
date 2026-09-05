@@ -1,0 +1,308 @@
+<meta charset="utf-8">
+<title>Refinement Lattice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Public+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+:root{
+  --ground:#f2f5f9; --panel:#fff; --sunk:#e9eef5;
+  --ink:#14171c; --ink-soft:#3d4552; --muted:#69718a;
+  --line:#dbe1ea; --line-strong:#c3cbd8; --accent:#2563eb; --accent-soft:#e7eeff;
+  --g0:#2f6fd0; --g1:#c08a00; --g2:#12876f; --g3:#8a4fbf; --g4:#bd4426; --g5:#0f6d8a;
+  --hold:#15803d; --gone:#b03a1a; --synth:#8a4fbf;
+  --serif:"Newsreader",Georgia,serif;
+  --sans:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#12151b; --panel:#1a1f27; --sunk:#141920;
+  --ink:#eef1f6; --ink-soft:#c3cad6; --muted:#8b94a6;
+  --line:#2a323d; --line-strong:#3d4753; --accent:#7aa2ff; --accent-soft:#1d2740;
+  --g0:#5b8ae8; --g1:#b0831c; --g2:#1f9c83; --g3:#9a6fd8; --g4:#d4674a; --g5:#3f97b5;
+  --hold:#5cc47f; --gone:#f08a63; --synth:#b388ff;
+}}
+:root[data-theme="dark"]{
+  --ground:#12151b; --panel:#1a1f27; --sunk:#141920;
+  --ink:#eef1f6; --ink-soft:#c3cad6; --muted:#8b94a6;
+  --line:#2a323d; --line-strong:#3d4753; --accent:#7aa2ff; --accent-soft:#1d2740;
+  --g0:#5b8ae8; --g1:#b0831c; --g2:#1f9c83; --g3:#9a6fd8; --g4:#d4674a; --g5:#3f97b5;
+  --hold:#5cc47f; --gone:#f08a63; --synth:#b388ff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1280px;margin:0 auto;padding:0 clamp(.9rem,3vw,2rem) 4rem}
+h1,h2,h3{font-family:var(--serif);font-weight:500;margin:0;text-wrap:balance}
+h1{font-size:clamp(1.75rem,3.8vw,2.5rem);line-height:1.1;letter-spacing:-.015em}
+h3{font-size:.92rem;font-weight:600;font-family:var(--sans)}
+p{margin:0;max-width:70ch}
+.eyebrow{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+.synthbar{background:var(--synth);color:#fff;padding:.55rem 1rem;font-family:var(--mono);font-size:.75rem;
+  letter-spacing:.05em;display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;justify-content:center}
+header{padding:clamp(1.3rem,3vw,2.2rem) 0 1.3rem;display:flex;flex-direction:column;gap:.8rem;border-bottom:2px solid var(--ink)}
+.lede{font-family:var(--serif);font-size:clamp(1rem,1.85vw,1.16rem);line-height:1.5;color:var(--ink-soft);max-width:66ch}
+
+.bar{display:flex;flex-wrap:wrap;gap:.9rem 1.6rem;align-items:center;padding:.85rem 1rem;background:var(--sunk);border:1px solid var(--line);border-bottom:none;margin-top:1.5rem}
+.bar label{display:flex;align-items:center;gap:.55rem;font-size:.85rem;color:var(--ink-soft)}
+#cut{width:min(260px,40vw);accent-color:var(--accent)}
+.cutnow{font-family:var(--mono);font-size:.84rem;font-weight:600;color:var(--ink);min-width:6.5em}
+.lenspick{display:flex;gap:1px;background:var(--line-strong);margin-left:auto}
+.lenspick button{border:none;background:var(--panel);font:inherit;font-size:.8rem;padding:.35rem .7rem;cursor:pointer;color:var(--ink)}
+.lenspick button[aria-pressed="true"]{background:var(--accent);color:#fff}
+
+.latwrap{background:var(--panel);border:1px solid var(--line);padding:1.1rem;overflow-x:auto}
+.tier{display:flex;flex-direction:column;gap:.3rem;margin-bottom:1.15rem}
+.tierlab{font-family:var(--mono);font-size:.64rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;gap:.7rem;align-items:baseline}
+.tierlab b{color:var(--ink-soft);font-weight:500}
+.row{display:flex;gap:5px;align-items:stretch;min-width:840px}
+/* 18 sub-groups in one line squeezes every label to an ellipsis; wrap instead. */
+.row.wrap{flex-wrap:wrap;min-width:0}
+.row.wrap .blk{flex:1 1 128px;max-width:190px}
+.blk{flex:1 1 0;min-width:0;border:1px solid var(--line-strong);background:var(--sunk);padding:.4rem .5rem;
+  display:flex;flex-direction:column;gap:.25rem;cursor:pointer;position:relative}
+.blk:hover{border-color:var(--accent)}
+.blk[aria-current="true"]{outline:2px solid var(--accent);outline-offset:-2px}
+.blk .nm{font-size:.79rem;font-weight:600;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.blk .ct{font-family:var(--mono);font-size:.62rem;color:var(--muted)}
+.blk.gone{border-style:dashed;opacity:.45;background:transparent}
+.blk.gone .nm{text-decoration:line-through;font-weight:400}
+.sup{display:flex;gap:2px}
+.sup i{width:100%;height:4px;background:var(--line-strong);display:block}
+.sup i.on{background:currentColor}
+.leaves{display:flex;flex-wrap:wrap;gap:3px;min-width:840px}
+.leaf{font-family:var(--mono);font-size:.68rem;padding:.12rem .3rem;background:var(--sunk);border:1px solid transparent;color:var(--ink-soft)}
+.leaf.loose{border-color:var(--gone);color:var(--gone);background:transparent}
+.legend{display:flex;flex-wrap:wrap;gap:.4rem 1.3rem;font-size:.76rem;color:var(--muted);margin-top:.2rem}
+.legend span{display:flex;align-items:center;gap:.4rem}
+.sw{width:22px;height:12px;border:1px solid var(--line-strong);background:var(--sunk);display:block}
+.sw.d{border-style:dashed;background:transparent;opacity:.5}
+
+.under{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-top:none}
+@media(min-width:900px){.under{grid-template-columns:1fr 1fr 1fr}}
+.cell{background:var(--panel);padding:1rem;display:flex;flex-direction:column;gap:.6rem;min-width:0}
+.obs{display:flex;flex-direction:column;gap:4px}
+.ob{display:flex;align-items:center;gap:.5rem;padding:.32rem .45rem;background:var(--sunk);cursor:pointer;font-size:.79rem}
+.ob input{margin:0;accent-color:var(--accent)}
+.ob .nm{flex:1;min-width:0}
+.ob .sc{font-family:var(--mono);font-size:.68rem;color:var(--muted)}
+.ob[data-on="false"]{opacity:.42}
+.dot{width:9px;height:9px;flex:none}
+.forget{font-size:.8rem;color:var(--ink-soft);background:var(--sunk);border-left:3px solid var(--gone);padding:.55rem .65rem;line-height:1.45}
+.forget b{display:block;font-family:var(--mono);font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gone);margin-bottom:.15rem}
+.kv{display:flex;justify-content:space-between;font-size:.8rem;padding:.2rem 0;border-bottom:1px solid var(--line)}
+.kv:last-child{border:none}
+.kv b{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.empty{font-size:.82rem;color:var(--muted);font-style:italic}
+
+.notes{margin-top:1.6rem;display:grid;gap:1px;background:var(--line);border:1px solid var(--line)}
+@media(min-width:820px){.notes{grid-template-columns:repeat(3,1fr)}}
+.note{background:var(--panel);padding:1rem;display:flex;flex-direction:column;gap:.3rem}
+.note b{font-size:.9rem}
+.note span{font-size:.82rem;color:var(--muted);line-height:1.45}
+.foot{margin-top:1.8rem;padding-top:1.1rem;border-top:1px solid var(--line);font-size:.8rem;color:var(--muted);display:flex;flex-direction:column;gap:.5rem}
+.foot code{font-family:var(--mono);font-size:.76rem;background:var(--sunk);padding:.08rem .28rem}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="synthbar"><b>SYNTHETIC DATA — NOT A RESULT.</b>
+  <span>Every grouping and score here is generated. A design target, not a measurement.</span></div>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">Platonic Semantics &middot; end-state design target</span>
+  <h1>A structure that dissolves under scrutiny</h1>
+  <p class="lede">Not a map. What this project is actually trying to measure is a
+  <strong>refinement lattice</strong> — nested groupings that survive only as long as enough
+  independent observers endorse them. Raise the bar and the fine distinctions go first; the
+  coarse skeleton goes last.</p>
+  <p class="lede" style="max-width:60ch">A two-dimensional scatter cannot show this, because the
+  object is not a space. It is a hierarchy with a survival threshold, and the interesting
+  quantity is what breaks.</p>
+</header>
+
+<div class="bar">
+  <label>Observers required to endorse a grouping
+    <input id="cut" type="range" min="1" max="6" step="1" value="3" aria-label="Observers required">
+    <span class="cutnow" id="cutnow">3 of 6</span>
+  </label>
+  <span class="lenspick" id="lenspick"></span>
+</div>
+
+<div class="latwrap">
+  <div class="tier">
+    <div class="tierlab"><b>Broad kinds</b><span id="t1">—</span></div>
+    <div class="row" id="row1"></div>
+  </div>
+  <div class="tier">
+    <div class="tierlab"><b>Finer distinctions</b><span id="t2">—</span></div>
+    <div class="row wrap" id="row2"></div>
+  </div>
+  <div class="tier">
+    <div class="tierlab"><b>Individual things</b><span id="t3">—</span></div>
+    <div class="leaves" id="row3"></div>
+  </div>
+  <div class="legend">
+    <span><i class="sw"></i> holds at this threshold</span>
+    <span><i class="sw d"></i> dissolved &mdash; too few observers call it a real grouping</span>
+    <span>the striped bar on each block is which observers endorse it</span>
+  </div>
+</div>
+
+<div class="under">
+  <div class="cell">
+    <h3>Observers</h3>
+    <p style="font-size:.79rem;color:var(--muted)">Switch one off and the lattice rebuilds without
+    its vote. The count is how many of the 24 groupings that observer recognises.</p>
+    <div class="obs" id="obs"></div>
+  </div>
+  <div class="cell">
+    <h3>What this threshold costs</h3>
+    <div class="forget" id="forget"></div>
+    <div id="counts"></div>
+  </div>
+  <div class="cell" id="insp"></div>
+</div>
+
+<div class="notes">
+  <div class="note"><b>Why not a scatter plot</b><span>A 2-D plot of word embeddings shows one
+  system's geometry, and anyone can make one from any embedding in ten minutes. It cannot show a
+  grouping that four observers accept and two reject — which is the only thing this project
+  exists to measure.</span></div>
+  <div class="note"><b>Why the threshold is the control</b><span>Every observer sees a coarsening
+  of the structure. Rather than picking one and calling it the answer, the instrument makes the
+  level explicit and names what each one discards.</span></div>
+  <div class="note"><b>Why heterogeneous observers</b><span>Language models, a vision encoder,
+  human judgement and a formal ontology are partial views of one thing. Putting a symbolic system
+  in the roster lets a formal structure check a neural one, instead of only comparing neural to
+  neural.</span></div>
+</div>
+
+<div class="foot">
+  <p><strong>This file is synthetic and stays synthetic</strong>, under the same rule as
+  <code>prototypes/semantic_space_explorer.html</code>: it demonstrates intended interactions, and
+  none of its groupings are discovered structure. Do not cite it; do not tune real analysis to
+  match it.</p>
+  <p>Real measurements are in <code>results/run_001/atlas.html</code> and
+  <code>results/run_003/context_effect.html</code>. The gap between those and this page is the
+  work: one notion of relatedness instead of three, six near-identical language models instead of
+  six genuinely different observer types, and a flat list of words instead of a nested hierarchy
+  there is something to be right or wrong about.</p>
+</div>
+</div>
+
+<script>
+const D = {"synthetic":true,"nodes":[{"id":0,"kind":"leaf","label":"dog","children":[],"level":6,"domain":0,"support":["qwen","llama","vision","zh","human","formal"]},{"id":1,"kind":"leaf","label":"wolf","children":[],"level":6,"domain":0,"support":["qwen","llama","vision","zh","human","formal"]},{"id":2,"kind":"leaf","label":"cat","children":[],"level":6,"domain":0,"support":["qwen","llama","vision","zh","human","formal"]},{"id":3,"kind":"leaf","label":"horse","children":[],"level":6,"domain":0,"support":["qwen","llama","vision","zh","human","formal"]},{"id":4,"kind":"leaf","label":"sparrow","children":[],"level":6,"domain":0,"support":["qwen","llama","vision","zh","human","formal"]},{"id":5,"kind":"group","label":"mammals","children":[0,1,2,3,4],"level":4,"domain":0,"support":["zh","human","formal"]},{"id":6,"kind":"leaf","label":"eagle","children":[],"level":6,"domain":0,"support":["qwen","llama","vision","zh","human","formal"]},{"id":7,"kind":"leaf","label":"salmon","children":[],"level":6,"domain":0,"support":["qwen","llama","vision","zh","human","formal"]},{"id":8,"kind":"leaf","label":"shark","children":[],"level":6,"domain":0,"support":["qwen","llama","vision","zh","human","formal"]},{"id":9,"kind":"leaf","label":"whale","children":[],"level":6,"domain":0,"support":["qwen","llama","vision","zh","human","formal"]},{"id":10,"kind":"leaf","label":"oak","children":[],"level":6,"domain":0,"support":["qwen","llama","vision","zh","human","formal"]},{"id":11,"kind":"group","label":"birds & fish","children":[6,7,8,9,10],"level":4,"domain":0,"support":["qwen","llama","vision","formal"]},{"id":12,"kind":"leaf","label":"fern","children":[],"level":6,"domain":0,"support":["qwen","llama","vision","zh","human","formal"]},{"id":13,"kind":"leaf","label":"moss","children":[],"level":6,"domain":0,"support":["qwen","llama","vision","zh","human","formal"]},{"id":14,"kind":"leaf","label":"rose","children":[],"level":6,"domain":0,"support":["qwen","llama","vision","zh","human","formal"]},{"id":15,"kind":"leaf","label":"bee","children":[],"level":6,"domain":0,"support":["qwen","llama","vision","zh","human","formal"]},{"id":16,"kind":"leaf","label":"mouse","children":[],"level":6,"domain":0,"support":["qwen","llama","vision","zh","human","formal"]},{"id":17,"kind":"group","label":"plants","children":[12,13,14,15,16],"level":4,"domain":0,"support":["qwen","human","formal"]},{"id":18,"kind":"group","label":"living things","children":[5,11,17],"level":2,"domain":0,"support":["qwen","llama","vision","zh","formal"]},{"id":19,"kind":"leaf","label":"hammer","children":[],"level":6,"domain":1,"support":["qwen","llama","vision","zh","human","formal"]},{"id":20,"kind":"leaf","label":"chisel","children":[],"level":6,"domain":1,"support":["qwen","llama","vision","zh","human","formal"]},{"id":21,"kind":"leaf","label":"plough","children":[],"level":6,"domain":1,"support":["qwen","llama","vision","zh","human","formal"]},{"id":22,"kind":"leaf","label":"loom","children":[],"level":6,"domain":1,"support":["qwen","llama","vision","zh","human","formal"]},{"id":23,"kind":"leaf","label":"kiln","children":[],"level":6,"domain":1,"support":["qwen","llama","vision","zh","human","formal"]},{"id":24,"kind":"group","label":"hand tools","children":[19,20,21,22,23],"level":4,"domain":1,"support":["vision","formal"]},{"id":25,"kind":"leaf","label":"furnace","children":[],"level":6,"domain":1,"support":["qwen","llama","vision","zh","human","formal"]},{"id":26,"kind":"leaf","label":"engine","children":[],"level":6,"domain":1,"support":["qwen","llama","vision","zh","human","formal"]},{"id":27,"kind":"leaf","label":"bicycle","children":[],"level":6,"domain":1,"support":["qwen","llama","vision","zh","human","formal"]},{"id":28,"kind":"leaf","label":"anchor","children":[],"level":6,"domain":1,"support":["qwen","llama","vision","zh","human","formal"]},{"id":29,"kind":"leaf","label":"violin","children":[],"level":6,"domain":1,"support":["qwen","llama","vision","zh","human","formal"]},{"id":30,"kind":"group","label":"machines","children":[25,26,27,28,29],"level":4,"domain":1,"support":["llama","zh","human","formal"]},{"id":31,"kind":"leaf","label":"kettle","children":[],"level":6,"domain":1,"support":["qwen","llama","vision","zh","human","formal"]},{"id":32,"kind":"leaf","label":"lantern","children":[],"level":6,"domain":1,"support":["qwen","llama","vision","zh","human","formal"]},{"id":33,"kind":"leaf","label":"telescope","children":[],"level":6,"domain":1,"support":["qwen","llama","vision","zh","human","formal"]},{"id":34,"kind":"leaf","label":"compass","children":[],"level":6,"domain":1,"support":["qwen","llama","vision","zh","human","formal"]},{"id":35,"kind":"leaf","label":"sextant","children":[],"level":6,"domain":1,"support":["qwen","llama","vision","zh","human","formal"]},{"id":36,"kind":"group","label":"instruments","children":[31,32,33,34,35],"level":4,"domain":1,"support":["llama","vision","human"]},{"id":37,"kind":"group","label":"made things","children":[24,30,36],"level":2,"domain":1,"support":["qwen","llama","zh","human","formal"]},{"id":38,"kind":"leaf","label":"harbour","children":[],"level":6,"domain":2,"support":["qwen","llama","vision","zh","human","formal"]},{"id":39,"kind":"leaf","label":"estuary","children":[],"level":6,"domain":2,"support":["qwen","llama","vision","zh","human","formal"]},{"id":40,"kind":"leaf","label":"delta","children":[],"level":6,"domain":2,"support":["qwen","llama","vision","zh","human","formal"]},{"id":41,"kind":"leaf","label":"isthmus","children":[],"level":6,"domain":2,"support":["qwen","llama","vision","zh","human","formal"]},{"id":42,"kind":"leaf","label":"valley","children":[],"level":6,"domain":2,"support":["qwen","llama","vision","zh","human","formal"]},{"id":43,"kind":"group","label":"water places","children":[38,39,40,41,42],"level":4,"domain":2,"support":["qwen","vision","human"]},{"id":44,"kind":"leaf","label":"glacier","children":[],"level":6,"domain":2,"support":["qwen","llama","vision","zh","human","formal"]},{"id":45,"kind":"leaf","label":"moor","children":[],"level":6,"domain":2,"support":["qwen","llama","vision","zh","human","formal"]},{"id":46,"kind":"leaf","label":"fen","children":[],"level":6,"domain":2,"support":["qwen","llama","vision","zh","human","formal"]},{"id":47,"kind":"leaf","label":"orchard","children":[],"level":6,"domain":2,"support":["qwen","llama","vision","zh","human","formal"]},{"id":48,"kind":"leaf","label":"quarry","children":[],"level":6,"domain":2,"support":["qwen","llama","vision","zh","human","formal"]},{"id":49,"kind":"group","label":"land places","children":[44,45,46,47,48],"level":4,"domain":2,"support":["qwen","zh"]},{"id":50,"kind":"leaf","label":"market","children":[],"level":6,"domain":2,"support":["qwen","llama","vision","zh","human","formal"]},{"id":51,"kind":"leaf","label":"citadel","children":[],"level":6,"domain":2,"support":["qwen","llama","vision","zh","human","formal"]},{"id":52,"kind":"leaf","label":"monastery","children":[],"level":6,"domain":2,"support":["qwen","llama","vision","zh","human","formal"]},{"id":53,"kind":"leaf","label":"hamlet","children":[],"level":6,"domain":2,"support":["qwen","llama","vision","zh","human","formal"]},{"id":54,"kind":"leaf","label":"causeway","children":[],"level":6,"domain":2,"support":["qwen","llama","vision","zh","human","formal"]},{"id":55,"kind":"group","label":"settlements","children":[50,51,52,53,54],"level":4,"domain":2,"support":["llama","vision","human"]},{"id":56,"kind":"group","label":"places","children":[43,49,55],"level":2,"domain":2,"support":["qwen","llama","zh","human","formal"]},{"id":57,"kind":"leaf","label":"forging","children":[],"level":6,"domain":3,"support":["qwen","llama","vision","zh","human","formal"]},{"id":58,"kind":"leaf","label":"smelting","children":[],"level":6,"domain":3,"support":["qwen","llama","vision","zh","human","formal"]},{"id":59,"kind":"leaf","label":"tanning","children":[],"level":6,"domain":3,"support":["qwen","llama","vision","zh","human","formal"]},{"id":60,"kind":"leaf","label":"weaving","children":[],"level":6,"domain":3,"support":["qwen","llama","vision","zh","human","formal"]},{"id":61,"kind":"leaf","label":"grafting","children":[],"level":6,"domain":3,"support":["qwen","llama","vision","zh","human","formal"]},{"id":62,"kind":"group","label":"making","children":[57,58,59,60,61],"level":4,"domain":3,"support":["qwen"]},{"id":63,"kind":"leaf","label":"pruning","children":[],"level":6,"domain":3,"support":["qwen","llama","vision","zh","human","formal"]},{"id":64,"kind":"leaf","label":"harvesting","children":[],"level":6,"domain":3,"support":["qwen","llama","vision","zh","human","formal"]},{"id":65,"kind":"leaf","label":"distilling","children":[],"level":6,"domain":3,"support":["qwen","llama","vision","zh","human","formal"]},{"id":66,"kind":"leaf","label":"fermenting","children":[],"level":6,"domain":3,"support":["qwen","llama","vision","zh","human","formal"]},{"id":67,"kind":"leaf","label":"navigating","children":[],"level":6,"domain":3,"support":["qwen","llama","vision","zh","human","formal"]},{"id":68,"kind":"group","label":"tending","children":[63,64,65,66,67],"level":4,"domain":3,"support":["llama","human","formal"]},{"id":69,"kind":"leaf","label":"charting","children":[],"level":6,"domain":3,"support":["qwen","llama","vision","zh","human","formal"]},{"id":70,"kind":"leaf","label":"surveying","children":[],"level":6,"domain":3,"support":["qwen","llama","vision","zh","human","formal"]},{"id":71,"kind":"leaf","label":"tracking","children":[],"level":6,"domain":3,"support":["qwen","llama","vision","zh","human","formal"]},{"id":72,"kind":"leaf","label":"migrating","children":[],"level":6,"domain":3,"support":["qwen","llama","vision","zh","human","formal"]},{"id":73,"kind":"leaf","label":"quarrying","children":[],"level":6,"domain":3,"support":["qwen","llama","vision","zh","human","formal"]},{"id":74,"kind":"group","label":"finding the way","children":[69,70,71,72,73],"level":4,"domain":3,"support":["qwen","vision","zh","human","formal"]},{"id":75,"kind":"group","label":"actions","children":[62,68,74],"level":2,"domain":3,"support":["qwen","zh","formal"]},{"id":76,"kind":"leaf","label":"grief","children":[],"level":6,"domain":4,"support":["qwen","llama","vision","zh","human","formal"]},{"id":77,"kind":"leaf","label":"remorse","children":[],"level":6,"domain":4,"support":["qwen","llama","vision","zh","human","formal"]},{"id":78,"kind":"leaf","label":"longing","children":[],"level":6,"domain":4,"support":["qwen","llama","vision","zh","human","formal"]},{"id":79,"kind":"leaf","label":"dread","children":[],"level":6,"domain":4,"support":["qwen","llama","vision","zh","human","formal"]},{"id":80,"kind":"leaf","label":"unease","children":[],"level":6,"domain":4,"support":["qwen","llama","vision","zh","human","formal"]},{"id":81,"kind":"group","label":"sorrow","children":[76,77,78,79,80],"level":4,"domain":4,"support":["llama","zh"]},{"id":82,"kind":"leaf","label":"doubt","children":[],"level":6,"domain":4,"support":["qwen","llama","vision","zh","human","formal"]},{"id":83,"kind":"leaf","label":"awe","children":[],"level":6,"domain":4,"support":["qwen","llama","vision","zh","human","formal"]},{"id":84,"kind":"leaf","label":"reverence","children":[],"level":6,"domain":4,"support":["qwen","llama","vision","zh","human","formal"]},{"id":85,"kind":"leaf","label":"serenity","children":[],"level":6,"domain":4,"support":["qwen","llama","vision","zh","human","formal"]},{"id":86,"kind":"leaf","label":"patience","children":[],"level":6,"domain":4,"support":["qwen","llama","vision","zh","human","formal"]},{"id":87,"kind":"group","label":"wonder","children":[82,83,84,85,86],"level":4,"domain":4,"support":["qwen","vision","formal"]},{"id":88,"kind":"leaf","label":"resolve","children":[],"level":6,"domain":4,"support":["qwen","llama","vision","zh","human","formal"]},{"id":89,"kind":"leaf","label":"zeal","children":[],"level":6,"domain":4,"support":["qwen","llama","vision","zh","human","formal"]},{"id":90,"kind":"leaf","label":"curiosity","children":[],"level":6,"domain":4,"support":["qwen","llama","vision","zh","human","formal"]},{"id":91,"kind":"leaf","label":"envy","children":[],"level":6,"domain":4,"support":["qwen","llama","vision","zh","human","formal"]},{"id":92,"kind":"leaf","label":"apathy","children":[],"level":6,"domain":4,"support":["qwen","llama","vision","zh","human","formal"]},{"id":93,"kind":"group","label":"steadiness","children":[88,89,90,91,92],"level":4,"domain":4,"support":["llama","zh","human","formal"]},{"id":94,"kind":"group","label":"mind & feeling","children":[81,87,93],"level":2,"domain":4,"support":["qwen","zh","human","formal"]},{"id":95,"kind":"leaf","label":"symmetry","children":[],"level":6,"domain":5,"support":["qwen","llama","vision","zh","human","formal"]},{"id":96,"kind":"leaf","label":"duality","children":[],"level":6,"domain":5,"support":["qwen","llama","vision","zh","human","formal"]},{"id":97,"kind":"leaf","label":"parity","children":[],"level":6,"domain":5,"support":["qwen","llama","vision","zh","human","formal"]},{"id":98,"kind":"leaf","label":"invariance","children":[],"level":6,"domain":5,"support":["qwen","llama","vision","zh","human","formal"]},{"id":99,"kind":"leaf","label":"closure","children":[],"level":6,"domain":5,"support":["qwen","llama","vision","zh","human","formal"]},{"id":100,"kind":"group","label":"form","children":[95,96,97,98,99],"level":4,"domain":5,"support":["llama","zh"]},{"id":101,"kind":"leaf","label":"recursion","children":[],"level":6,"domain":5,"support":["qwen","llama","vision","zh","human","formal"]},{"id":102,"kind":"leaf","label":"gradient","children":[],"level":6,"domain":5,"support":["qwen","llama","vision","zh","human","formal"]},{"id":103,"kind":"leaf","label":"threshold","children":[],"level":6,"domain":5,"support":["qwen","llama","vision","zh","human","formal"]},{"id":104,"kind":"leaf","label":"equilibrium","children":[],"level":6,"domain":5,"support":["qwen","llama","vision","zh","human","formal"]},{"id":105,"kind":"leaf","label":"entropy","children":[],"level":6,"domain":5,"support":["qwen","llama","vision","zh","human","formal"]},{"id":106,"kind":"group","label":"change","children":[101,102,103,104,105],"level":4,"domain":5,"support":["qwen","zh","human","formal"]},{"id":107,"kind":"leaf","label":"causality","children":[],"level":6,"domain":5,"support":["qwen","llama","vision","zh","human","formal"]},{"id":108,"kind":"leaf","label":"precedent","children":[],"level":6,"domain":5,"support":["qwen","llama","vision","zh","human","formal"]},{"id":109,"kind":"leaf","label":"legitimacy","children":[],"level":6,"domain":5,"support":["qwen","llama","vision","zh","human","formal"]},{"id":110,"kind":"leaf","label":"scarcity","children":[],"level":6,"domain":5,"support":["qwen","llama","vision","zh","human","formal"]},{"id":111,"kind":"leaf","label":"tempo","children":[],"level":6,"domain":5,"support":["qwen","llama","vision","zh","human","formal"]},{"id":112,"kind":"group","label":"order","children":[107,108,109,110,111],"level":4,"domain":5,"support":["qwen","llama","vision","zh"]},{"id":113,"kind":"group","label":"abstractions","children":[100,106,112],"level":2,"domain":5,"support":["qwen","llama","vision","zh","human","formal"]}],"roots":[18,37,56,75,94,113],"observers":[{"id":"qwen","name":"Qwen-class LM","kind":"language"},{"id":"llama","name":"Llama-class LM","kind":"language"},{"id":"vision","name":"Vision encoder","kind":"vision"},{"id":"zh","name":"Chinese-only LM","kind":"language"},{"id":"human","name":"Human norms","kind":"behavioural"},{"id":"formal","name":"Formal ontology","kind":"symbolic"}],"lenses":[{"id":"taxonomic","name":"Taxonomic","blurb":"Kind-of and part-of."},{"id":"causal","name":"Causal","blurb":"What brings what about."},{"id":"functional","name":"Functional","blurb":"What a thing is for."}],"domains":["living things","made things","places","actions","mind & feeling","abstractions"],"support":{"taxonomic":{"0":["qwen","llama","vision","zh","human","formal"],"1":["qwen","llama","vision","zh","human","formal"],"2":["qwen","llama","vision","zh","human","formal"],"3":["qwen","llama","vision","zh","human","formal"],"4":["qwen","llama","vision","zh","human","formal"],"5":["formal","human","zh"],"6":["qwen","llama","vision","zh","human","formal"],"7":["qwen","llama","vision","zh","human","formal"],"8":["qwen","llama","vision","zh","human","formal"],"9":["qwen","llama","vision","zh","human","formal"],"10":["qwen","llama","vision","zh","human","formal"],"11":["formal","llama","qwen","vision"],"12":["qwen","llama","vision","zh","human","formal"],"13":["qwen","llama","vision","zh","human","formal"],"14":["qwen","llama","vision","zh","human","formal"],"15":["qwen","llama","vision","zh","human","formal"],"16":["qwen","llama","vision","zh","human","formal"],"17":["formal","human","qwen"],"18":["formal","llama","qwen","vision","zh"],"19":["qwen","llama","vision","zh","human","formal"],"20":["qwen","llama","vision","zh","human","formal"],"21":["qwen","llama","vision","zh","human","formal"],"22":["qwen","llama","vision","zh","human","formal"],"23":["qwen","llama","vision","zh","human","formal"],"24":["formal","vision"],"25":["qwen","llama","vision","zh","human","formal"],"26":["qwen","llama","vision","zh","human","formal"],"27":["qwen","llama","vision","zh","human","formal"],"28":["qwen","llama","vision","zh","human","formal"],"29":["qwen","llama","vision","zh","human","formal"],"30":["formal","human","llama","zh"],"31":["qwen","llama","vision","zh","human","formal"],"32":["qwen","llama","vision","zh","human","formal"],"33":["qwen","llama","vision","zh","human","formal"],"34":["qwen","llama","vision","zh","human","formal"],"35":["qwen","llama","vision","zh","human","formal"],"36":["human","llama","vision"],"37":["formal","human","llama","qwen","zh"],"38":["qwen","llama","vision","zh","human","formal"],"39":["qwen","llama","vision","zh","human","formal"],"40":["qwen","llama","vision","zh","human","formal"],"41":["qwen","llama","vision","zh","human","formal"],"42":["qwen","llama","vision","zh","human","formal"],"43":["human","qwen","vision"],"44":["qwen","llama","vision","zh","human","formal"],"45":["qwen","llama","vision","zh","human","formal"],"46":["qwen","llama","vision","zh","human","formal"],"47":["qwen","llama","vision","zh","human","formal"],"48":["qwen","llama","vision","zh","human","formal"],"49":["qwen","zh"],"50":["qwen","llama","vision","zh","human","formal"],"51":["qwen","llama","vision","zh","human","formal"],"52":["qwen","llama","vision","zh","human","formal"],"53":["qwen","llama","vision","zh","human","formal"],"54":["qwen","llama","vision","zh","human","formal"],"55":["human","llama","vision"],"56":["formal","human","llama","qwen","zh"],"57":["qwen","llama","vision","zh","human","formal"],"58":["qwen","llama","vision","zh","human","formal"],"59":["qwen","llama","vision","zh","human","formal"],"60":["qwen","llama","vision","zh","human","formal"],"61":["qwen","llama","vision","zh","human","formal"],"62":["qwen"],"63":["qwen","llama","vision","zh","human","formal"],"64":["qwen","llama","vision","zh","human","formal"],"65":["qwen","llama","vision","zh","human","formal"],"66":["qwen","llama","vision","zh","human","formal"],"67":["qwen","llama","vision","zh","human","formal"],"68":["formal","human","llama"],"69":["qwen","llama","vision","zh","human","formal"],"70":["qwen","llama","vision","zh","human","formal"],"71":["qwen","llama","vision","zh","human","formal"],"72":["qwen","llama","vision","zh","human","formal"],"73":["qwen","llama","vision","zh","human","formal"],"74":["formal","human","qwen","vision","zh"],"75":["formal","qwen","zh"],"76":["qwen","llama","vision","zh","human","formal"],"77":["qwen","llama","vision","zh","human","formal"],"78":["qwen","llama","vision","zh","human","formal"],"79":["qwen","llama","vision","zh","human","formal"],"80":["qwen","llama","vision","zh","human","formal"],"81":["llama","zh"],"82":["qwen","llama","vision","zh","human","formal"],"83":["qwen","llama","vision","zh","human","formal"],"84":["qwen","llama","vision","zh","human","formal"],"85":["qwen","llama","vision","zh","human","formal"],"86":["qwen","llama","vision","zh","human","formal"],"87":["formal","qwen","vision"],"88":["qwen","llama","vision","zh","human","formal"],"89":["qwen","llama","vision","zh","human","formal"],"90":["qwen","llama","vision","zh","human","formal"],"91":["qwen","llama","vision","zh","human","formal"],"92":["qwen","llama","vision","zh","human","formal"],"93":["formal","human","llama","zh"],"94":["formal","human","qwen","zh"],"95":["qwen","llama","vision","zh","human","formal"],"96":["qwen","llama","vision","zh","human","formal"],"97":["qwen","llama","vision","zh","human","formal"],"98":["qwen","llama","vision","zh","human","formal"],"99":["qwen","llama","vision","zh","human","formal"],"100":["llama","zh"],"101":["qwen","llama","vision","zh","human","formal"],"102":["qwen","llama","vision","zh","human","formal"],"103":["qwen","llama","vision","zh","human","formal"],"104":["qwen","llama","vision","zh","human","formal"],"105":["qwen","llama","vision","zh","human","formal"],"106":["formal","human","qwen","zh"],"107":["qwen","llama","vision","zh","human","formal"],"108":["qwen","llama","vision","zh","human","formal"],"109":["qwen","llama","vision","zh","human","formal"],"110":["qwen","llama","vision","zh","human","formal"],"111":["qwen","llama","vision","zh","human","formal"],"112":["llama","qwen","vision","zh"],"113":["formal","human","llama","qwen","vision","zh"]},"causal":{"0":["qwen","llama","vision","zh","human","formal"],"1":["qwen","llama","vision","zh","human","formal"],"2":["qwen","llama","vision","zh","human","formal"],"3":["qwen","llama","vision","zh","human","formal"],"4":["qwen","llama","vision","zh","human","formal"],"5":["formal","human"],"6":["qwen","llama","vision","zh","human","formal"],"7":["qwen","llama","vision","zh","human","formal"],"8":["qwen","llama","vision","zh","human","formal"],"9":["qwen","llama","vision","zh","human","formal"],"10":["qwen","llama","vision","zh","human","formal"],"11":["qwen","vision","zh"],"12":["qwen","llama","vision","zh","human","formal"],"13":["qwen","llama","vision","zh","human","formal"],"14":["qwen","llama","vision","zh","human","formal"],"15":["qwen","llama","vision","zh","human","formal"],"16":["qwen","llama","vision","zh","human","formal"],"17":["qwen"],"18":["formal","llama","qwen","vision","zh"],"19":["qwen","llama","vision","zh","human","formal"],"20":["qwen","llama","vision","zh","human","formal"],"21":["qwen","llama","vision","zh","human","formal"],"22":["qwen","llama","vision","zh","human","formal"],"23":["qwen","llama","vision","zh","human","formal"],"24":["human","llama","vision"],"25":["qwen","llama","vision","zh","human","formal"],"26":["qwen","llama","vision","zh","human","formal"],"27":["qwen","llama","vision","zh","human","formal"],"28":["qwen","llama","vision","zh","human","formal"],"29":["qwen","llama","vision","zh","human","formal"],"30":["formal","human","llama","zh"],"31":["qwen","llama","vision","zh","human","formal"],"32":["qwen","llama","vision","zh","human","formal"],"33":["qwen","llama","vision","zh","human","formal"],"34":["qwen","llama","vision","zh","human","formal"],"35":["qwen","llama","vision","zh","human","formal"],"36":["human","vision","zh"],"37":["formal","human","llama","qwen","zh"],"38":["qwen","llama","vision","zh","human","formal"],"39":["qwen","llama","vision","zh","human","formal"],"40":["qwen","llama","vision","zh","human","formal"],"41":["qwen","llama","vision","zh","human","formal"],"42":["qwen","llama","vision","zh","human","formal"],"43":["formal","qwen","vision"],"44":["qwen","llama","vision","zh","human","formal"],"45":["qwen","llama","vision","zh","human","formal"],"46":["qwen","llama","vision","zh","human","formal"],"47":["qwen","llama","vision","zh","human","formal"],"48":["qwen","llama","vision","zh","human","formal"],"49":["human","qwen","zh"],"50":["qwen","llama","vision","zh","human","formal"],"51":["qwen","llama","vision","zh","human","formal"],"52":["qwen","llama","vision","zh","human","formal"],"53":["qwen","llama","vision","zh","human","formal"],"54":["qwen","llama","vision","zh","human","formal"],"55":["human","llama","vision"],"56":["formal","human","llama","qwen","zh"],"57":["qwen","llama","vision","zh","human","formal"],"58":["qwen","llama","vision","zh","human","formal"],"59":["qwen","llama","vision","zh","human","formal"],"60":["qwen","llama","vision","zh","human","formal"],"61":["qwen","llama","vision","zh","human","formal"],"62":["formal"],"63":["qwen","llama","vision","zh","human","formal"],"64":["qwen","llama","vision","zh","human","formal"],"65":["qwen","llama","vision","zh","human","formal"],"66":["qwen","llama","vision","zh","human","formal"],"67":["qwen","llama","vision","zh","human","formal"],"68":["formal","human","zh"],"69":["qwen","llama","vision","zh","human","formal"],"70":["qwen","llama","vision","zh","human","formal"],"71":["qwen","llama","vision","zh","human","formal"],"72":["qwen","llama","vision","zh","human","formal"],"73":["qwen","llama","vision","zh","human","formal"],"74":["formal","human","vision","zh"],"75":["formal","qwen","zh"],"76":["qwen","llama","vision","zh","human","formal"],"77":["qwen","llama","vision","zh","human","formal"],"78":["qwen","llama","vision","zh","human","formal"],"79":["qwen","llama","vision","zh","human","formal"],"80":["qwen","llama","vision","zh","human","formal"],"81":["llama","zh"],"82":["qwen","llama","vision","zh","human","formal"],"83":["qwen","llama","vision","zh","human","formal"],"84":["qwen","llama","vision","zh","human","formal"],"85":["qwen","llama","vision","zh","human","formal"],"86":["qwen","llama","vision","zh","human","formal"],"87":["qwen","vision"],"88":["qwen","llama","vision","zh","human","formal"],"89":["qwen","llama","vision","zh","human","formal"],"90":["qwen","llama","vision","zh","human","formal"],"91":["qwen","llama","vision","zh","human","formal"],"92":["qwen","llama","vision","zh","human","formal"],"93":["formal","llama","vision"],"94":["formal","human","qwen","zh"],"95":["qwen","llama","vision","zh","human","formal"],"96":["qwen","llama","vision","zh","human","formal"],"97":["qwen","llama","vision","zh","human","formal"],"98":["qwen","llama","vision","zh","human","formal"],"99":["qwen","llama","vision","zh","human","formal"],"100":["qwen","zh"],"101":["qwen","llama","vision","zh","human","formal"],"102":["qwen","llama","vision","zh","human","formal"],"103":["qwen","llama","vision","zh","human","formal"],"104":["qwen","llama","vision","zh","human","formal"],"105":["qwen","llama","vision","zh","human","formal"],"106":["human","qwen"],"107":["qwen","llama","vision","zh","human","formal"],"108":["qwen","llama","vision","zh","human","formal"],"109":["qwen","llama","vision","zh","human","formal"],"110":["qwen","llama","vision","zh","human","formal"],"111":["qwen","llama","vision","zh","human","formal"],"112":["llama","qwen","vision","zh"],"113":["formal","human","llama","qwen","vision","zh"]},"functional":{"0":["qwen","llama","vision","zh","human","formal"],"1":["qwen","llama","vision","zh","human","formal"],"2":["qwen","llama","vision","zh","human","formal"],"3":["qwen","llama","vision","zh","human","formal"],"4":["qwen","llama","vision","zh","human","formal"],"5":["vision"],"6":["qwen","llama","vision","zh","human","formal"],"7":["qwen","llama","vision","zh","human","formal"],"8":["qwen","llama","vision","zh","human","formal"],"9":["qwen","llama","vision","zh","human","formal"],"10":["qwen","llama","vision","zh","human","formal"],"11":["qwen"],"12":["qwen","llama","vision","zh","human","formal"],"13":["qwen","llama","vision","zh","human","formal"],"14":["qwen","llama","vision","zh","human","formal"],"15":["qwen","llama","vision","zh","human","formal"],"16":["qwen","llama","vision","zh","human","formal"],"17":["formal","human","vision"],"18":["formal","llama","qwen","vision","zh"],"19":["qwen","llama","vision","zh","human","formal"],"20":["qwen","llama","vision","zh","human","formal"],"21":["qwen","llama","vision","zh","human","formal"],"22":["qwen","llama","vision","zh","human","formal"],"23":["qwen","llama","vision","zh","human","formal"],"24":["vision"],"25":["qwen","llama","vision","zh","human","formal"],"26":["qwen","llama","vision","zh","human","formal"],"27":["qwen","llama","vision","zh","human","formal"],"28":["qwen","llama","vision","zh","human","formal"],"29":["qwen","llama","vision","zh","human","formal"],"30":["formal","llama","qwen","zh"],"31":["qwen","llama","vision","zh","human","formal"],"32":["qwen","llama","vision","zh","human","formal"],"33":["qwen","llama","vision","zh","human","formal"],"34":["qwen","llama","vision","zh","human","formal"],"35":["qwen","llama","vision","zh","human","formal"],"36":["vision","zh"],"37":["formal","human","llama","qwen","zh"],"38":["qwen","llama","vision","zh","human","formal"],"39":["qwen","llama","vision","zh","human","formal"],"40":["qwen","llama","vision","zh","human","formal"],"41":["qwen","llama","vision","zh","human","formal"],"42":["qwen","llama","vision","zh","human","formal"],"43":["human","qwen"],"44":["qwen","llama","vision","zh","human","formal"],"45":["qwen","llama","vision","zh","human","formal"],"46":["qwen","llama","vision","zh","human","formal"],"47":["qwen","llama","vision","zh","human","formal"],"48":["qwen","llama","vision","zh","human","formal"],"49":["qwen","vision","zh"],"50":["qwen","llama","vision","zh","human","formal"],"51":["qwen","llama","vision","zh","human","formal"],"52":["qwen","llama","vision","zh","human","formal"],"53":["qwen","llama","vision","zh","human","formal"],"54":["qwen","llama","vision","zh","human","formal"],"55":["vision"],"56":["formal","human","llama","qwen","zh"],"57":["qwen","llama","vision","zh","human","formal"],"58":["qwen","llama","vision","zh","human","formal"],"59":["qwen","llama","vision","zh","human","formal"],"60":["qwen","llama","vision","zh","human","formal"],"61":["qwen","llama","vision","zh","human","formal"],"62":["formal","qwen"],"63":["qwen","llama","vision","zh","human","formal"],"64":["qwen","llama","vision","zh","human","formal"],"65":["qwen","llama","vision","zh","human","formal"],"66":["qwen","llama","vision","zh","human","formal"],"67":["qwen","llama","vision","zh","human","formal"],"68":["formal","human"],"69":["qwen","llama","vision","zh","human","formal"],"70":["qwen","llama","vision","zh","human","formal"],"71":["qwen","llama","vision","zh","human","formal"],"72":["qwen","llama","vision","zh","human","formal"],"73":["qwen","llama","vision","zh","human","formal"],"74":["formal","human","qwen","vision","zh"],"75":["formal","qwen","zh"],"76":["qwen","llama","vision","zh","human","formal"],"77":["qwen","llama","vision","zh","human","formal"],"78":["qwen","llama","vision","zh","human","formal"],"79":["qwen","llama","vision","zh","human","formal"],"80":["qwen","llama","vision","zh","human","formal"],"81":["vision"],"82":["qwen","llama","vision","zh","human","formal"],"83":["qwen","llama","vision","zh","human","formal"],"84":["qwen","llama","vision","zh","human","formal"],"85":["qwen","llama","vision","zh","human","formal"],"86":["qwen","llama","vision","zh","human","formal"],"87":["formal","qwen"],"88":["qwen","llama","vision","zh","human","formal"],"89":["qwen","llama","vision","zh","human","formal"],"90":["qwen","llama","vision","zh","human","formal"],"91":["qwen","llama","vision","zh","human","formal"],"92":["qwen","llama","vision","zh","human","formal"],"93":["zh"],"94":["formal","human","qwen","zh"],"95":["qwen","llama","vision","zh","human","formal"],"96":["qwen","llama","vision","zh","human","formal"],"97":["qwen","llama","vision","zh","human","formal"],"98":["qwen","llama","vision","zh","human","formal"],"99":["qwen","llama","vision","zh","human","formal"],"100":["llama","zh"],"101":["qwen","llama","vision","zh","human","formal"],"102":["qwen","llama","vision","zh","human","formal"],"103":["qwen","llama","vision","zh","human","formal"],"104":["qwen","llama","vision","zh","human","formal"],"105":["qwen","llama","vision","zh","human","formal"],"106":["formal","human","qwen"],"107":["qwen","llama","vision","zh","human","formal"],"108":["qwen","llama","vision","zh","human","formal"],"109":["qwen","llama","vision","zh","human","formal"],"110":["qwen","llama","vision","zh","human","formal"],"111":["qwen","llama","vision","zh","human","formal"],"112":["llama","zh"],"113":["formal","human","llama","qwen","vision","zh"]}}};
+const GC=["--g0","--g1","--g2","--g3","--g4","--g5"];
+let CUT=3, LENS=D.lenses[0].id, ON=new Set(D.observers.map(o=>o.id)), SEL=null;
+const byId=Object.fromEntries(D.nodes.map(n=>[n.id,n]));
+const parentOf={}; D.nodes.forEach(n=>n.children.forEach(c=>parentOf[c]=n.id));
+
+const supportOf=id=>(D.support[LENS][id]||[]).filter(o=>ON.has(o));
+const holds=id=>byId[id].kind==="leaf"||supportOf(id).length>=Math.min(CUT,ON.size);
+const leavesUnder=id=>byId[id].kind==="leaf"?[id]:byId[id].children.flatMap(leavesUnder);
+
+function renderLens(){
+  document.getElementById("lenspick").innerHTML=D.lenses.map(l=>
+    `<button data-id="${l.id}" aria-pressed="${l.id===LENS}" title="${l.blurb}">${l.name}</button>`).join("");
+}
+function renderObs(){
+  document.getElementById("obs").innerHTML=D.observers.map((o,i)=>{
+    const kept=D.nodes.filter(n=>n.kind==="group"&&(D.support[LENS][n.id]||[]).includes(o.id)).length;
+    return `<label class="ob" data-on="${ON.has(o.id)}">
+      <input type="checkbox" data-id="${o.id}" ${ON.has(o.id)?"checked":""}>
+      <i class="dot" style="background:var(${GC[i]})"></i>
+      <span class="nm">${o.name}</span><span class="sc">${kept}/24</span></label>`;}).join("");
+}
+function supBar(id){
+  const sup=D.support[LENS][id]||[];
+  return `<span class="sup">${D.observers.map((o,i)=>
+    `<i class="${sup.includes(o.id)&&ON.has(o.id)?"on":""}" style="color:var(${GC[i]})"></i>`).join("")}</span>`;
+}
+
+function render(){
+  const roots=D.roots;
+  document.getElementById("row1").innerHTML=roots.map(id=>{
+    const n=byId[id];
+    return `<div class="blk ${holds(id)?"":"gone"}" data-id="${id}" aria-current="${SEL===id}"
+      style="border-left:3px solid var(${GC[n.domain]})">
+      <span class="nm">${n.label}</span>
+      <span class="ct">${leavesUnder(id).length} things &middot; ${supportOf(id).length}/${ON.size} agree</span>
+      ${supBar(id)}</div>`;}).join("");
+
+  const subs=roots.flatMap(r=>byId[r].children);
+  document.getElementById("row2").innerHTML=subs.map(id=>{
+    const n=byId[id], pOk=holds(parentOf[id]);
+    return `<div class="blk ${holds(id)?"":"gone"}" data-id="${id}" aria-current="${SEL===id}"
+      style="border-left:3px solid var(${GC[n.domain]});${pOk?"":"opacity:.55"}">
+      <span class="nm">${n.label}</span>
+      <span class="ct">${leavesUnder(id).length} &middot; ${supportOf(id).length}/${ON.size}</span>
+      ${supBar(id)}</div>`;}).join("");
+
+  const loose=new Set();
+  subs.forEach(id=>{ if(!holds(id)) leavesUnder(id).forEach(l=>loose.add(l)); });
+  document.getElementById("row3").innerHTML=D.nodes.filter(n=>n.kind==="leaf").map(n=>
+    `<span class="leaf ${loose.has(n.id)?"loose":""}" title="${loose.has(n.id)?"its grouping dissolved — no agreed home at this threshold":"held by an agreed grouping"}">${n.label}</span>`).join("");
+
+  const k1=roots.filter(holds).length, k2=subs.filter(holds).length, homed=90-loose.size;
+  document.getElementById("t1").textContent=`${k1} of ${roots.length} hold`;
+  document.getElementById("t2").textContent=`${k2} of ${subs.length} hold`;
+  document.getElementById("t3").textContent=`${homed} of 90 still have an agreed home`;
+
+  const lost=subs.filter(id=>!holds(id)).map(id=>byId[id].label);
+  document.getElementById("forget").innerHTML=`<b>dissolved at ${CUT} of ${ON.size}</b>` +
+    (lost.length? `${lost.length} finer distinction${lost.length===1?"":"s"} no longer survive, including
+      <em>${lost.slice(0,4).join("</em>, <em>")}</em>${lost.length>4?` and ${lost.length-4} more`:""}.`
+     : "nothing yet — every grouping still has enough support.");
+  document.getElementById("counts").innerHTML=
+    `<div class="kv"><span>broad kinds holding</span><b>${k1} / ${roots.length}</b></div>
+     <div class="kv"><span>finer distinctions holding</span><b>${k2} / ${subs.length}</b></div>
+     <div class="kv"><span>things with an agreed home</span><b>${homed} / 90</b></div>
+     <div class="kv"><span>observers voting</span><b>${ON.size} / ${D.observers.length}</b></div>`;
+  renderInsp();
+}
+
+function renderInsp(){
+  const el=document.getElementById("insp");
+  if(SEL===null||!byId[SEL]){
+    el.innerHTML=`<h3>Grouping</h3><p class="empty">Click any block to see which observers endorse it, and what it contains.</p>`;
+    return;
+  }
+  const n=byId[SEL], sup=D.support[LENS][SEL]||[];
+  el.innerHTML=`<h3>${n.label}</h3>
+    <div class="kv"><span>status at ${CUT} of ${ON.size}</span>
+      <b style="color:${holds(SEL)?"var(--hold)":"var(--gone)"}">${holds(SEL)?"holds":"dissolved"}</b></div>
+    <div class="obs">${D.observers.map((o,i)=>{
+      const e=sup.includes(o.id);
+      return `<label class="ob" data-on="${ON.has(o.id)}" style="cursor:default">
+        <i class="dot" style="background:${e?`var(${GC[i]})`:"var(--line-strong)"}"></i>
+        <span class="nm">${o.name}</span>
+        <span class="sc" style="color:${e?"var(--hold)":"var(--muted)"}">${e?"endorses":"rejects"}</span></label>`;}).join("")}</div>
+    <p style="font-size:.78rem;color:var(--muted);line-height:1.4">Contains: ${leavesUnder(SEL).map(l=>byId[l].label).join(", ")}</p>`;
+}
+
+document.getElementById("cut").addEventListener("input",e=>{
+  CUT=Number(e.target.value);
+  document.getElementById("cutnow").textContent=`${CUT} of ${D.observers.length}`;
+  render();
+});
+document.getElementById("lenspick").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  LENS=b.dataset.id; renderLens(); renderObs(); render();
+});
+document.getElementById("obs").addEventListener("change",e=>{
+  const id=e.target.dataset.id; if(!id) return;
+  if(e.target.checked) ON.add(id); else ON.delete(id);
+  if(!ON.size){ ON.add(id); e.target.checked=true; }
+  renderObs(); render();
+});
+document.querySelector(".latwrap").addEventListener("click",e=>{
+  const b=e.target.closest(".blk"); if(!b) return;
+  const id=Number(b.dataset.id);
+  SEL = SEL===id ? null : id;
+  render();
+});
+
+renderLens(); renderObs(); render();
+</script>
