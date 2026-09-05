@@ -58,8 +58,8 @@ Only P1 is on the critical path; the outcome is unobserved until it lands.
 
 | | capability | why it could not be done by survey | status |
 | --- | --- | --- | --- |
-| **P0** | relation-conditioned stack — the same concepts under "power", "harm", "contested", "who benefits" | re-asking every pair per relation multiplies survey length | in flight |
-| **P1** | **draw the elicited space: several models, one frame, no alignment** | — | **critical path** |
+| **P0** | relation-conditioned stack — the same concepts under "power", "harm", "contested", "who benefits" | re-asking every pair per relation multiplies survey length | **done — negative** |
+| **P1** | **draw the elicited space: several models, one frame, no alignment** | — | **done** — `results/elicited_map.html` |
 | P2 | asymmetry: ask d(A,B) and d(B,A) separately | doubles the survey; classic Galileo assumes symmetry | ready |
 | P3 | the self-point: where the model places itself among the objects | a respondent cannot rate themselves on the same rod without priming | ready |
 | P4 | motion and the formal inverse: which message moves an object where you want it | needs the same respondent re-surveyed after every candidate message | design required |
@@ -88,9 +88,24 @@ Criterion provenance: `explicit_user` — Brian has asked for the spatial
 representation repeatedly, and it is the one thing the programme has never
 delivered.
 
+## P0 result: meaning did not separate, but the test was weak
+
+Every relation returned the same geometry as the plain question — correlations
+0.886 to 0.953 against an instrument ceiling of 0.924, and 0.936 between the
+relations themselves. On its face: semantic distance is unitary and the
+conditioning buys nothing.
+
+**The concept set makes this result unsafe.** All ten concepts are political, so
+"with respect to power", "who benefits" and "how much people argue about them"
+are close to synonymous *for these particular concepts*. A null was likely
+whatever the model does. The test needs a heterogeneous set — the original pilot's
+`dog, wolf, hammer, hospital, anger, justice, river, democracy`, where power and
+harm plainly come apart — before the direction is called empty.
+
 ## Progress, separated
 
-* **Outcome:** 0 observed. No elicited artifact a reviewer can open.
+* **Outcome:** 1 observed — `results/elicited_map.html`, three models in one
+  frame from asked distances, rotatable in three dimensions.
 * **Enabling:** instrument repaired; asked-vs-counted settled; three models elicited.
 * **Process:** this document, and the D21 entry recording the arm.
 

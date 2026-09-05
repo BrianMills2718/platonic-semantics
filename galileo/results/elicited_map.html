@@ -1,0 +1,111 @@
+<!doctype html><meta charset="utf-8">
+<title>The elicited space</title>
+<style>
+ body{margin:0;background:#0f1115;color:#e7e9ee;
+      font:15px/1.55 ui-sans-serif,system-ui,-apple-system,sans-serif}
+ .wrap{max-width:1120px;margin:0 auto;padding:34px 26px 60px}
+ h1{font-size:27px;margin:0 0 8px;letter-spacing:-.02em}
+ .sub{color:#9aa3b2;max-width:72ch;margin:0 0 16px}
+ .cols{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+ svg{background:#151821;border:1px solid #232838;border-radius:12px;
+      cursor:grab;touch-action:none}
+ svg:active{cursor:grabbing}
+ .keys{margin:12px 0 0;font-size:13px;color:#9aa3b2}
+ .k{margin-right:16px} .k i{display:inline-block;width:10px;height:10px;
+     border-radius:2px;margin-right:6px;vertical-align:middle}
+ table{border-collapse:collapse;font-size:13px}
+ td{padding:4px 12px 4px 0;border-bottom:1px solid #232838}
+ td.n{text-align:right;color:#ef4444;font-variant-numeric:tabular-nums}
+ h3{font-size:12.5px;margin:0 0 4px;color:#9aa3b2;text-transform:uppercase;
+     letter-spacing:.06em}
+ .warn{background:#151821;border-left:3px solid #f59e0b;padding:13px 18px;
+        border-radius:0 8px 8px 0;margin:18px 0;max-width:78ch}
+ .note{color:#9aa3b2;font-size:13.5px;max-width:76ch;margin:14px 0 0}
+ b{color:#e7e9ee} code{background:#1b2130;padding:1px 5px;border-radius:4px}
+ .hint{color:#6b7688;font-size:12.5px;margin:8px 0 0}
+</style>
+<div class="wrap">
+<h1>The elicited space — three models, one frame, nothing aligned</h1>
+<p class="sub">Ten political concepts, positioned from distances the models were
+<b>asked</b> for: each judged every pair against one shared rod
+("good" and "evil" are 100 apart), over
+25 randomised orders, twice. Because they share the rod their
+numbers are already in the same units — so all three sit in one frame with
+<b>no alignment step</b>. That commensurability is what Woelfel's method exists
+to provide, and it is exactly what the text-counting route gave up.</p>
+
+<div class="cols">
+<div>
+<svg id="v" width="700" height="600"></svg>
+<p class="hint">Drag to rotate. White dot = where the three models agree;
+coloured dots = each model's own placement.</p>
+</div>
+<div>
+<h3>Least trustworthy positions</h3>
+<table><tr><td>war</td><td class='n'>0.56</td></tr><tr><td>vote</td><td class='n'>0.51</td></tr><tr><td>president</td><td class='n'>0.44</td></tr><tr><td>biden</td><td class='n'>0.44</td></tr><tr><td>party</td><td class='n'>0.43</td></tr></table>
+<p class="note" style="max-width:28ch">Red halo = how badly this concept's
+distances survive being placed at all. A big halo means its position is a
+compromise.</p>
+</div></div>
+<p class="keys"><span class="k"><i style="background:#fb923c"></i>gpt-5.6-luna</span><span class="k"><i style="background:#f472b6"></i>glm-5.2</span><span class="k"><i style="background:#a78bfa"></i>deepseek-v4-flash</span></p>
+
+<p class="warn"><b>This is drawn in three dimensions, and rotates, because two
+would not have been honest.</b> Flattened to a plane these distances keep only
+54% of their structure and the picture visibly fails —
+<code>president</code>, <code>vote</code>, <code>party</code> and
+<code>biden</code> collapse into one blob, and the worst pair is drawn at
+0.11 having been elicited at 0.95. Three dimensions keep
+<b>68%</b>, which clears the bar this project set for drawing anything
+spatially. The bar was not moved to permit a picture; the picture gained a
+dimension to meet it.</p>
+
+<p class="note">Each model agrees with itself at 0.97 and with the
+others at about 0.84,
+so spread between the coloured dots is real disagreement, not noise.</p>
+<p class="note">What a model states here has essentially nothing to do with what
+its own writing implies — the same concepts measured by word co-occurrence give
+ρ = 0.01 against these. See <code>ASKED_VS_COUNTED.md</code>.</p>
+
+<script>
+const D = {"pts": [{"c": "president", "p": [-0.3826665694957854, 0.06017301829427107, -0.3765320485140154], "s": 0.7876972886384699, "m": {"gpt-5.6-luna": [-0.3869679003589505, -0.011843419044079774, 0.043598584191752186], "glm-5.2": [-0.286168693931263, 0.13967688913845538, -0.20397234510320383], "deepseek-v4-flash": [-0.39934078701901077, 0.0011553030906125857, -0.39779673439311525]}}, {"c": "government", "p": [-0.11123221103246914, -0.0913295680581992, -0.17733264767820292], "s": 0.5441136402890387, "m": {"gpt-5.6-luna": [-0.0789143152906454, -0.0704850566163723, -0.23109675982594732], "glm-5.2": [-0.0656824364056225, 0.01649141512899633, 0.10224588750432516], "deepseek-v4-flash": [-0.03478899377013191, -0.2594304419557601, -0.12118852304311607]}}, {"c": "country", "p": [0.09139249744492335, -0.44551496280875796, -0.1516530012535089], "s": 0.41083448556855257, "m": {"gpt-5.6-luna": [0.030778287283685486, -0.3319041903741549, -0.3871736160992134], "glm-5.2": [0.1213636164761724, -0.30594450544460555, 0.14515648247885513], "deepseek-v4-flash": [0.14472517293327364, -0.48837856894470866, -0.14156095719783157]}}, {"c": "biden", "p": [-0.5913254341796033, 0.227245899739432, -0.3393010500979744], "s": 0.7834889797582651, "m": {"gpt-5.6-luna": [-0.6181004079263616, 0.07404600225578675, 0.2776808854564842], "glm-5.2": [-0.4825167754898437, 0.09037709014124326, -0.5102352844930187], "deepseek-v4-flash": [-0.65649488339737, 0.40223365339760364, -0.4006932225467049]}}, {"c": "war", "p": [1.0, 0.7593195065703433, -0.008347079192528497], "s": 1.0, "m": {"gpt-5.6-luna": [0.6640493444195925, 0.5123401661350959, 0.2406269319384786], "glm-5.2": [0.867172842625688, 0.6140418876156363, -0.19235636449713303], "deepseek-v4-flash": [1.0255610283416225, 0.7906526618275841, 0.03820482312128824]}}, {"c": "state", "p": [0.02110030167887181, -0.1553020516198165, -0.1133088292001995], "s": 0.47130361183442815, "m": {"gpt-5.6-luna": [0.035622637372988784, -0.09284012185442458, -0.31736754744941253], "glm-5.2": [0.07816145446419617, -0.06011601476452333, 0.22817017012704213], "deepseek-v4-flash": [0.03498097542157508, -0.19825181999693145, -0.05630204332791178]}}, {"c": "power", "p": [0.0717097551478586, 0.16143725935362926, -0.05845378686650787], "s": 0.48900762451222224, "m": {"gpt-5.6-luna": [0.16219018798242865, 0.2603248261802578, -0.27476661976532607], "glm-5.2": [0.07895059042897286, 0.19579867756309768, 0.019312881821088285], "deepseek-v4-flash": [0.09270977298962904, 0.022329422915312612, -0.13951674920325755]}}, {"c": "party", "p": [-0.2914628462005018, 0.1402285758740071, 0.38168097427764286], "s": 0.7611492981843907, "m": {"gpt-5.6-luna": [-0.16013034994659367, 0.08948577613227053, 0.07713549433510564], "glm-5.2": [-0.2851500117751447, 0.13402805832681236, 0.25787378764980184], "deepseek-v4-flash": [-0.266815434462836, 0.11149372888985157, 0.4667917005930786]}}, {"c": "vote", "p": [-0.4570793162909148, 0.10166432618591179, 0.6977464428077759], "s": 0.8977007338777756, "m": {"gpt-5.6-luna": [-0.19594110376872634, 0.23957415412630684, 0.13085572877466903], "glm-5.2": [-0.6348330412304608, -0.002404268990660908, 0.3971191431252258], "deepseek-v4-flash": [-0.3493237885959517, 0.07455731270737488, 0.6468976220582774]}}, {"c": "world", "p": [0.6495638229276209, -0.757922003530822, 0.14550102571751877], "s": 0.7262603169841352, "m": {"gpt-5.6-luna": [0.5474136202325828, -0.6686981369406875, 0.4405069184434096], "glm-5.2": [0.6087024548373055, -0.8219492287144525, -0.24331435861298265], "deepseek-v4-flash": [0.40878693755920076, -0.45636125193094024, 0.10516408393929284]}}], "models": ["gpt-5.6-luna", "glm-5.2", "deepseek-v4-flash"], "col": {"gpt-5.6-luna": "#fb923c", "glm-5.2": "#f472b6", "deepseek-v4-flash": "#a78bfa"}, "pairs": [{"a": "president", "b": "vote", "real": 0.9458799593594144}, {"a": "biden", "b": "vote", "real": 1.0106153039674755}, {"a": "biden", "b": "war", "real": 1.4810418540572765}]};
+const svg = document.getElementById('v'), W = 700, H = 600;
+let ax = -0.5, ay = 0.6, drag = null;
+function rot(p) {
+  let [x, y, z] = p;
+  let x1 = x * Math.cos(ay) - z * Math.sin(ay), z1 = x * Math.sin(ay) + z * Math.cos(ay);
+  let y1 = y * Math.cos(ax) - z1 * Math.sin(ax), z2 = y * Math.sin(ax) + z1 * Math.cos(ax);
+  return [x1, y1, z2];
+}
+function proj(p) {
+  const [x, y, z] = rot(p), d = 3.4, k = d / (d - z * 0.9);
+  return [W / 2 + x * 200 * k, H / 2 - y * 200 * k, k];
+}
+function draw() {
+  const el = [];
+  const order = D.pts.map((pt, i) => [proj(pt.p)[2], i]).sort((a, b) => a[0] - b[0]);
+  for (const [, i] of order) {
+    const pt = D.pts[i], [x, y, k] = proj(pt.p);
+    el.push(`<circle cx="${x}" cy="${y}" r="${(9 + 30 * pt.s) * k}"
+      fill="#ef4444" fill-opacity="0.10" stroke="#ef4444" stroke-opacity="0.25"/>`);
+    for (const m of D.models) {
+      const [mx, my] = proj(pt.m[m]);
+      el.push(`<line x1="${x}" y1="${y}" x2="${mx}" y2="${my}"
+        stroke="${D.col[m]}" stroke-width="1.3" stroke-opacity="0.75"/>`);
+      el.push(`<circle cx="${mx}" cy="${my}" r="${3.2 * k}" fill="${D.col[m]}"/>`);
+    }
+    el.push(`<circle cx="${x}" cy="${y}" r="${4.5 * k}" fill="#e7e9ee"/>`);
+    el.push(`<text x="${x}" y="${y - 14 * k}" fill="#e7e9ee" font-size="${13 * k}"
+      font-weight="700" text-anchor="middle">${pt.c}</text>`);
+  }
+  svg.innerHTML = el.join('');
+}
+svg.addEventListener('pointerdown', e => { drag = [e.clientX, e.clientY]; svg.setPointerCapture(e.pointerId); });
+svg.addEventListener('pointerup', () => drag = null);
+svg.addEventListener('pointermove', e => {
+  if (!drag) return;
+  ay += (e.clientX - drag[0]) * 0.01; ax += (e.clientY - drag[1]) * 0.01;
+  drag = [e.clientX, e.clientY]; draw();
+});
+draw();
+</script>
+</div>
