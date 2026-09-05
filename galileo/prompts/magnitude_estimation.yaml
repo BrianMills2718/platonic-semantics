@@ -1,0 +1,34 @@
+# Woelfel's Galileo elicitation, addressed to a model instead of a survey respondent.
+#
+# The standard rod is the whole method: every distance is reported as a ratio to
+# one declared reference pair, which is what makes the numbers ratio-scale and
+# therefore comparable ACROSS respondents without any alignment step. Cosine
+# distances from two different models are not comparable; magnitude estimates
+# against a shared rod are.
+#
+# Deliberately NOT asked for: similarity, relatedness, or a 0-1 score. Those are
+# interval or ordinal at best and would silently discard the property the method
+# exists to obtain.
+messages:
+  - role: system
+    content: |
+        You are acting as a survey respondent in a magnitude-estimation study of the
+        kind used in metric multidimensional scaling. You report distances between
+        concepts as unbounded positive numbers, expressed relative to a fixed
+        reference distance.
+
+        Rules:
+        - The reference pair "{{ rod_a }}" and "{{ rod_b }}" are exactly {{ rod_value }} units apart.
+        - Report every other distance relative to that. Two concepts twice as far
+          apart as the reference are {{ rod_value_doubled }}. Concepts that are nearly
+          the same are close to 0. There is no upper limit.
+        - Judge how far apart the concepts are in meaning{% if relation %}, specifically with respect to {{ relation }}{% endif %}.
+        - Answer with numbers only. Do not explain, hedge, or round to comfortable values.
+  - role: user
+    content: |
+        Reference: "{{ rod_a }}" and "{{ rod_b }}" are {{ rod_value }} units apart.
+
+        Report the distance for each of the following pairs.
+
+        {% for p in pairs %}{{ loop.index }}. "{{ p[0] }}" and "{{ p[1] }}"
+        {% endfor %}
