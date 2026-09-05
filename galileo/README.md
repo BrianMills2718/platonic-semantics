@@ -26,6 +26,7 @@ here, and the failure reproduces across two unrelated model families.
 | --- | --- | --- | --- |
 | Luna, batched, **same order both runs** | 0.900 | 0.928 | 0.122 |
 | Luna, batched, 5 randomised orders | **0.827** | 0.773 | 0.151 |
+| Luna, one pair per call **+ concept set shown** | 0.511 | 0.525 | 0.407 |
 | Luna, **one pair per call** | 0.417 | 0.211 | 1.702 |
 | GLM-5.2, batched, 5 randomised orders | 0.758 | 0.786 | 0.171 |
 
@@ -60,6 +61,24 @@ respondents. Woelfel's respondents carry a stable internal scale between
 questions. These models do not — they reconstruct one from whatever comparison
 set is in front of them.
 
+**4. Showing the concept set does not restore the anchor.** The obvious remedy —
+give the model the full concept range as context, but ask for one pair, so it can
+calibrate without a list of answers to sit inside — recovers only a little:
+test–retest 0.417 → 0.511, still far below the batched 0.827.
+
+That completes a clean monotone ordering across four designs, and it is the
+result:
+
+> **Stability tracks how many pairs are judged *in the same pass*, not how much
+> the model knows about the range.** Batched (0.827) > one pair with the concept
+> set (0.511) > one pair alone (0.417).
+
+Knowing which concepts are in play is worth about a fifth of what actually
+judging them together is worth. The model is not calibrating against a remembered
+scale at all — it is calibrating against the other judgments it is making at that
+moment. Woelfel's respondents carry a scale between questions; these models
+construct one per call and discard it.
+
 ### The one encouraging number
 
 Rod-swap ratio CV sits at 0.12–0.17 in every batched condition. Swapping
@@ -76,9 +95,8 @@ So the ratio property is partly present. It is the *anchoring* that fails.
 
 In rough order of expected value:
 
-1. **Give the comparison set as context, ask for one pair.** The batch anchors
-   and the single question avoids list position — this separates the two effects
-   that are currently confounded. It is the obvious experiment and is not yet run.
+1. ~~Give the comparison set as context, ask for one pair.~~ **Run. Recovers
+   little — see finding 4 above.**
 2. **Anchor with worked examples** rather than one rod: several pre-set distances
    spanning the range, so the scale is pinned at more than one point.
 3. **More permutations.** Five was not enough to average a block effect, but the

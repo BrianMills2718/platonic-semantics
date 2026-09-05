@@ -2,8 +2,8 @@
 
 **Date:** 2026-09-04
 **Design:** preregistered in D20 before any tensor was extracted
-**Status: small tier complete. Mid and large tiers extracting; replication pending.**
-**Verdict so far: the prediction is met, marginally, and in a consistent direction.**
+**Status: small and mid tiers complete. Large tier extracting.**
+**Verdict: the direction replicates; the significance does not survive correction at either tier.**
 
 Runs 001 and 002 both found that no relation transfers between models at the level
 of a specific pair — zero of ten, at every scale from 0.5B to 3B. Every one of
@@ -101,6 +101,34 @@ only what the stimulus changes, not a reshuffle. The third readout is the one to
 watch: total links *fall* from 3,171 to 2,714 while unanimous links rise from 215
 to 379. Context concentrates agreement rather than adding it.
 
+## Replication at the mid tier: direction yes, significance no
+
+Six systems and 15 pairs, against the small tier's four and six — a stricter test.
+
+| relation | p bare | p context | q context |
+| --- | --- | --- | --- |
+| **HasProperty** | 0.189 | **0.0070** | 0.0699 |
+| Associated | 0.266 | 0.150 | 0.749 |
+| UsedFor | 0.783 | 0.276 | 0.902 |
+
+**What replicated.** The same relation moves, in the same direction, by a similar
+amount: `HasProperty` p = 0.259 → 0.005 at the small tier and 0.189 → 0.007 here,
+with the effect growing rather than shrinking (+0.039 → +0.059). The same three
+relations improve and no others do, and `UsedFor` again crosses from a negative
+effect to a positive one. Mean effect across all ten moves −0.025 → −0.008.
+
+**What did not.** `HasProperty` reaches q = 0.0699 and does not clear the 0.05
+threshold. At the small tier it reached q = 0.0500 — exactly on the line. So the
+honest position across both tiers is: **the same relation, the same direction,
+replicated magnitude, and never quite clearing multiple-comparison correction.**
+Two independent near-misses are more than nothing and less than a finding.
+
+**Coherence, by contrast, replicates cleanly and strengthens.** Group-level shared
+direction goes from 7 of 10 relations to **8 of 10**, and the mean effect roughly
+doubles under context, 0.076 → 0.154. That is the same direction and a larger
+margin than the small tier. The group-level claim is solid; the per-pair one is
+not.
+
 ## The reliability ceiling, and how much of it is used
 
 Both stimulus modes now exist for every included system, so the ceiling is
@@ -149,9 +177,7 @@ bare-word design, not the models, was carrying the negative finding.
 
 ## What is still owed
 
-- **Replication at mid and large tiers.** Extracting at time of writing. One tier
-  and one borderline q-value is not a finding; if `HasProperty` moves the same way
-  at 1.6B and 3B, it is.
+- ~~Replication at the mid tier~~ — **done. See below.** Large tier still extracting.
 
   To resume: `scripts/run003_extract.sh` skips any model whose tensors already
   exist, so re-running it continues where it stopped. Then, per tier and mode:

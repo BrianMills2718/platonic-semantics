@@ -26,9 +26,14 @@ messages:
         - Answer with numbers only. Do not explain, hedge, or round to comfortable values.
   - role: user
     content: |
-        Reference: "{{ rod_a }}" and "{{ rod_b }}" are {{ rod_value }} units apart.
+        {% if context_concepts %}This study concerns these concepts: {% for c in context_concepts %}{{ c }}{% if not loop.last %}, {% endif %}{% endfor %}.
 
-        Report the distance for each of the following pairs.
+        Judge distances on a scale that spans that whole set, so that the closest
+        and the furthest pairs among them are meaningfully separated.
+
+        {% endif %}Reference: "{{ rod_a }}" and "{{ rod_b }}" are {{ rod_value }} units apart.
+
+        Report the distance for {% if pairs|length == 1 %}this pair{% else %}each of the following pairs{% endif %}.
 
         {% for p in pairs %}{{ loop.index }}. "{{ p[0] }}" and "{{ p[1] }}"
         {% endfor %}

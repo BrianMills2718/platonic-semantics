@@ -87,6 +87,20 @@ def schema_for(n: int) -> dict:
 REASONING = "none"
 
 
+def elicit_contextual(model, pairs, rod, trace_id, budget, concepts, relation=None):
+    """One judgment per call, but with the whole concept set shown as context.
+
+    The two prior failures point here. Batched elicitation is anchored but
+    carries a list-level bias; one-pair-per-call has no list bias but no anchor
+    either, and collapses. Those two effects were confounded. Showing the concept
+    set without asking for a list separates them: the model can calibrate its
+    range against the full study, and only one number is requested, so no answer
+    has a position among other answers.
+    """
+    return [elicit(model, [pair], rod, trace_id, budget, relation, concepts)[0][0]
+            for pair in pairs]
+
+
 def elicit_isolated(model, pairs, rod, trace_id, budget, relation=None):
     """One pair per call: the only way to remove list effects rather than average them.
 
@@ -125,11 +139,12 @@ def elicit_averaged(model, pairs, rod, trace_id, budget, n_perms, rng, relation=
     return mean, per_perm
 
 
-def elicit(model, pairs, rod, trace_id, budget, relation=None):
+def elicit(model, pairs, rod, trace_id, budget, relation=None, context_concepts=None):
     messages = render_prompt(
         PROMPT,
         rod_a=rod[0], rod_b=rod[1], rod_value=rod[2],
         rod_value_doubled=rod[2] * 2, relation=relation, pairs=pairs,
+        context_concepts=context_concepts,
     )
     data, result = call_llm_json_schema(
         model, messages, schema_for(len(pairs)),
@@ -166,6 +181,8 @@ def main() -> int:
     ap.add_argument("--model", default="openrouter/openai/gpt-5.6-luna")
     ap.add_argument("--check-stability", action="store_true",
                     help="run the three validity checks and write a report; build nothing")
+    ap.add_argument("--contextual", action="store_true",
+                    help="one pair per call WITH the concept set shown; separates anchoring from list position")
     ap.add_argument("--isolated", action="store_true",
                     help="one pair per call: removes list effects instead of averaging them")
     ap.add_argument("--permutations", type=int, default=5,
@@ -186,7 +203,16 @@ def main() -> int:
     print(f"pilot   {len(concepts)} concepts, {len(pairs)} pairs, {P} random orders per estimate")
     print(f"rods    {rod_a[0]}/{rod_a[1]}={rod_a[2]}   {rod_b[0]}/{rod_b[1]}={rod_b[2]}\n")
 
-    if args.isolated:
+    if args.contextual:
+        print("  elicitation: ONE PAIR PER CALL, concept set shown as context\n")
+        a1 = elicit_contextual(args.model, pairs, rod_a, trace, args.budget, concepts)
+        print(f"  estimate 1 (rod A)  {[round(v) for v in a1]}")
+        a2 = elicit_contextual(args.model, pairs, rod_a, trace, args.budget, concepts)
+        print(f"  estimate 2 (rod A)  {[round(v) for v in a2]}")
+        b1 = elicit_contextual(args.model, pairs, rod_b, trace, args.budget, concepts)
+        print(f"  estimate 3 (rod B)  {[round(v) for v in b1]}")
+        a1_perms = [a1]
+    elif args.isolated:
         print("  elicitation: ONE PAIR PER CALL (no list)\n")
         a1 = elicit_isolated(args.model, pairs, rod_a, trace, args.budget)
         print(f"  estimate 1 (rod A)  {[round(v) for v in a1]}")

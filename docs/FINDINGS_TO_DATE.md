@@ -19,7 +19,15 @@ Preregistered in D20. Write-up in `RUN_003_RESULTS.md`.
   flag under contextualised stimuli. Risk 21 has been open since run 001.
 - **Qualifies run 002's conclusion.** "Relations do not transfer" holds only for
   bare single words. `IsA` stays firmly negative under both.
-- Small tier only so far: four systems, six pairs. Mid and large extracting.
+- **Replicated at the mid tier (6 systems, 15 pairs), with a caveat.** `HasProperty`
+  moves the same way — p 0.189 → 0.0070, effect growing to +0.059 — but reaches
+  q=0.0699 and does not clear correction. At the small tier it reached q=0.0500,
+  exactly on the line. Two independent near-misses: more than nothing, less than a
+  finding.
+- **Coherence replicates cleanly and strengthens**: 7/10 → 8/10 relations, mean
+  effect roughly doubling under context (0.076 → 0.154). The group-level claim is
+  solid; the per-pair one is not.
+- Large tier still extracting.
 
 ## Run 002 happened on 2026-09-04 — scale ladder
 
