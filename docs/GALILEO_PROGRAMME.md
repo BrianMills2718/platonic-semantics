@@ -33,7 +33,7 @@ model respondent removes all four limits at once. The expansion is therefore not
 | instrument | **working** — test–retest 0.929, rod-swap 0.948, rod ratio CV 0.077 (`README.md`) |
 | asked vs counted | **unrelated**, ρ = 0.010 (`ASKED_VS_COUNTED.md`) |
 | three models asked | self-agreement 0.974, mutual 0.845 (`results/elicited_maps.json`) |
-| activations route | runs 001–003, 9 models, 212 concepts — complete, and now in tension with the above |
+| activations route | runs 001–003, 9 models, 212 concepts — complete, and **never compared to elicitation** |
 | relation stack | **in flight** |
 | decision log | last entry D20 covers run 003; **the whole Galileo arm is unrecorded** |
 
@@ -64,6 +64,7 @@ Only P1 is on the critical path; the outcome is unobserved until it lands.
 | P3 | the self-point: where the model places itself among the objects | a respondent cannot rate themselves on the same rod without priming | ready |
 | P4 | motion and the formal inverse: which message moves an object where you want it | needs the same respondent re-surveyed after every candidate message | design required |
 | P5 | scale: hundreds of concepts | 100 concepts is 4,950 pairs | conditional on P1 |
+| P6 | **bridge the routes**: one open instruct model, one shared concept set, measured both by elicitation and from activations | — | blocked on a model that fits locally |
 
 **Dependency types.** P1 `hard` on the working instrument (satisfied). P2, P3
 `optional` — independent, either order. P4 `exploration_required`: "a message"
@@ -93,16 +94,30 @@ delivered.
 * **Enabling:** instrument repaired; asked-vs-counted settled; three models elicited.
 * **Process:** this document, and the D21 entry recording the arm.
 
-## The one decision that is not mine
+## Activations vs elicitation: not yet comparable
 
-The two routes disagree. Activations (runs 001–003) and elicitation now answer
-the same question differently, and **which is the programme's primary instrument
-changes what everything downstream means**. Recommendation: **elicitation is
-primary for models, activations become the independent check**, because
-elicitation is interrogable, conditionable, and measured far more reliably
-(0.974 against 0.750). The alternative — activations primary, elicitation as
-corroboration — is defensible if the goal is what a model *represents* rather
-than what it *reports*, and those may not be the same thing.
+An earlier draft of this document said the two routes "disagree". **That was
+wrong and is retracted.** The ρ = 0.010 result compares elicitation against
+*word-counting*, not against activations. Elicitation and activations have never
+been compared, and cannot be with what exists:
+
+* **Concepts:** the activations study used 212 concepts; exactly three
+  (`government`, `country`, `war`) overlap with the ten elicited. Three concepts
+  is three pairs.
+* **Models:** activations ran on Qwen, BLOOM and XGLM — open-weight, small,
+  base. Elicitation ran on Luna, GLM-5.2 and DeepSeek — API-only, frontier.
+  No model appears in both.
+
+The obstacle is structural, not clerical: **activations need open weights,
+magnitude estimation needs instruction-following**, and the models that do both
+are too large for the local 4 GB GPU. Bridging it needs an open instruct model
+that fits, run both ways over one shared concept set — a real experiment, not a
+reanalysis, and it belongs in the phase table rather than in a claim.
+
+Until then no route is demoted. Elicitation is the better-measured instrument
+(0.974 against 0.750) and the only interrogable one, so it leads the programme;
+that is a statement about tractability, not about which better reflects what a
+model represents. Nothing measured so far bears on that question.
 
 ## Stop / scale / reset triggers
 

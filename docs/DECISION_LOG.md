@@ -477,8 +477,17 @@ not be read as evidence about models; the claim survives on the elicited maps,
 which carry no such confound.
 
 **Direction.** Elicitation is the primary instrument for models; text inference
-is retained for people, who cannot be interviewed; the activations route
-(runs 001–003) becomes an independent check rather than the only route. The
+is retained for people, who cannot be interviewed.
+
+**Correction, same day.** This entry first said the activations route and the
+elicitation route "disagree", and made that the programme's central open
+decision. It is withdrawn. The ρ = 0.010 finding compares elicitation with
+*word-counting*; elicitation and activations have never been compared. They also
+cannot be, from existing data — three of 212 concepts overlap, and no model
+appears in both studies. The obstacle is structural: activations need open
+weights, magnitude estimation needs instruction-following, and no locally
+runnable model does both well. That comparison is now phase P6 rather than a
+claim. The
 programme and its phases are in `GALILEO_PROGRAMME.md`. The critical path is to
 draw the elicited space — several models in one frame with no alignment step,
 which the ratio scale makes legitimate and which nothing in this repository has
