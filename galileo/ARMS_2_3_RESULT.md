@@ -2,7 +2,7 @@
 
 **Result: a language model asked to post about politics does not organise those
 concepts the way people writing about them do.** Agreement between the two is
-**0.30**, against a ceiling of **0.73** — where the ceiling is how well each
+**0.30**, against a ceiling of **0.84** — where the ceiling is how well each
 corpus agrees with *itself* on a different random half of its own text. The gap
 is far larger than the slack in that ceiling.
 
@@ -12,8 +12,8 @@ is far larger than the slack in that ceiling.
 | model | 4,877 posts, `gpt-5.6-terra`, topics drawn from the human corpus, no human post ever shown |
 | matched at | 59,452 content tokens each |
 | concepts | president, biden, trump, government, country, war, state, party, power, world |
-| people agree with themselves | 0.706 |
-| model agrees with itself | 0.743 |
+| people agree with themselves | 0.828 |
+| model agrees with itself | 0.853 |
 | people vs model | **0.297** |
 
 Visual: `results/spaces.html`. Data: `results/arm2_vs_arm3.json`.
@@ -67,9 +67,9 @@ country.
 
 ## Honest limits
 
-* **The ceiling is only moderate (0.73).** The direction of the result is safe —
-  0.30 against 0.73 is not a near miss — but its exact size is not. Raising it
-  needs more model text, which costs money; human text is already abundant.
+* **Superseded in scope.** This two-corpus result stands, but the four-corpus
+  version in `CONVERGENCE.md` answers the more interesting question and should be
+  read first.
 * **One model, one month, one language, one topic.** Nothing here separates
   "language models in general" from "this model", and `Exorde` December 2024 is a
   specific political moment.
@@ -85,6 +85,12 @@ country.
   dominated by which rare words happened to fall nearby. Capping the context
   vocabulary at the 3,000 most frequent words is what moved reliability from
   0.65 to 0.71–0.74.
+* **Split-half ceilings must be corrected to full length.** A split-half figure
+  measures a HALF-sized corpus, while the comparison it bounds uses full corpora,
+  so it understates. Uncorrected, this was read as 0.73 rather than 0.84. The
+  error only became visible with more corpora, where two different corpora were
+  seen agreeing more than a corpus agreed with itself — an impossibility.
+  Spearman-Brown is the standard correction.
 * **Reliability must be estimated from repeated splits.** A single split-half
   number swings by ±0.15 here. An early sweep on single splits suggested 25,000
   tokens would be plenty; averaged over five splits the true figure was far

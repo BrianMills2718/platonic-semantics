@@ -172,6 +172,20 @@ def spearman(a, b):
     return float((ra * rb).sum() / den) if den else float("nan")
 
 
+def spearman_brown(r):
+    """Correct a split-half correlation up to the full corpus length.
+
+    Each half sees only half the text, so a split-half figure is the reliability
+    of a HALF-SIZED corpus -- but the cross-corpus comparison it is the ceiling
+    for is computed on full corpora. Left uncorrected it understates the ceiling
+    badly, to the point where two different corpora were seen to agree with each
+    other MORE than a corpus agreed with itself, which is not a possible state of
+    affairs and is what exposed the error. Spearman-Brown is the standard
+    psychometric correction for exactly this.
+    """
+    return 2 * r / (1 + r) if r > -1 else float("nan")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)

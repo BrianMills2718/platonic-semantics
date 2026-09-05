@@ -33,7 +33,8 @@ import statistics
 import numpy as np
 
 from text_space import (load_posts, shared_vocabulary, ppmi_profiles,
-                        distance_matrix, spearman, tokenize)
+                        distance_matrix, spearman, tokenize,
+                        spearman_brown)
 
 ROOT = pathlib.Path(__file__).resolve().parent
 
@@ -109,7 +110,7 @@ def main() -> int:
         g = list(grp); rng.shuffle(g)
         mid = len(g) // 2
         a, b = space(g[:mid], vocab, args.window, args.max_context), space(g[mid:], vocab, args.window, args.max_context)
-        halves[name] = spearman(a[iu], b[iu])
+        halves[name] = spearman_brown(spearman(a[iu], b[iu]))
         half_D[name] = (a, b)
 
     ceiling = statistics.fmean(halves.values())

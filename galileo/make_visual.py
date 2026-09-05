@@ -1,26 +1,20 @@
 #!/usr/bin/env python3
-"""Show the two semantic spaces exactly, without projecting them into a plane.
+"""Draw the corpora without projecting them, and show the block structure directly.
 
-The obvious visual -- MDS both corpora into 2-D and draw arrows -- was built
-first and then abandoned, for a measured reason. Classical MDS of these ten
-concepts keeps only **31% of the structure** in two dimensions (44% in three).
-Whatever such a picture shows, roughly two thirds of it is an artefact of the
-projection rather than the data, and the apparent movement of a concept is then
-mostly a statement about the flattening. Four earlier attempts at a visual for
-this project were rejected as "basically a dot plot", and this is the likely
-reason: a 2-D scatter of a space that does not fit in 2-D can only ever look
-like scattered dots, because that is nearly all it contains.
+Two rules govern this figure, both learned the hard way on this project.
 
-So nothing is projected here. Each concept gets its own axis, and the other nine
-are placed on it at their **actual measured distance** -- people on the upper
-lane, the model on the lower one, joined by a line. Every number drawn is a
-number that was measured. A steep line means the model moved that concept; a
-flat one means the two agree about it.
+**Nothing is flattened.** Classical MDS of these ten concepts retains only ~31%
+of the structure in two dimensions, so a 2-D map of them is roughly two-thirds
+artefact of the projection. Four earlier scatter-plot attempts here were rejected
+as "basically a dot plot", which is what a 2-D scatter of a space that does not
+fit in 2-D can only ever look like. So each concept gets its own axis and the
+other nine sit on it at their measured distance, one lane per corpus. Every
+position drawn is a number that was measured.
 
-The axis is stretched to the observed range rather than 0-1. PPMI cosine
-distances at this vocabulary size all sit between about 0.75 and 0.91, and drawn
-on a full 0-1 axis every point would collapse into one indistinguishable blob --
-which would hide the entire result rather than showing it honestly.
+**The result is a block, so the block is drawn.** The finding is not about any
+one pair of corpora; it is that the model lanes track each other while the people
+lane sits apart. The agreement matrix at the top shows that structure at a glance,
+and the per-concept lanes below show where it comes from.
 """
 from __future__ import annotations
 
@@ -32,146 +26,189 @@ import numpy as np
 
 ROOT = pathlib.Path(__file__).resolve().parent
 
+# People deliberately in a different hue from every model, because the claim is
+# precisely that the models group together and people do not join them.
+COLOR = {"people": "#60a5fa"}
+MODEL_COLORS = ["#fb923c", "#f472b6", "#a78bfa", "#facc15"]
+
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--data", default="results/arm2_vs_arm3.json")
+    ap.add_argument("--data", default="results/all_corpora.json")
     ap.add_argument("--out", default="results/spaces.html")
     args = ap.parse_args()
 
     d = json.loads((ROOT / args.data).read_text(encoding="utf-8"))
     vocab = d["vocab"]
-    P = np.array(d["distances"]["people"])
-    M = np.array(d["distances"]["model"])
+    names = list(d["distances"])
+    for i, n in enumerate(n for n in names if n != "people"):
+        COLOR[n] = MODEL_COLORS[i % len(MODEL_COLORS)]
+    D = {k: np.array(v) for k, v in d["distances"].items()}
     n = len(vocab)
     iu = np.triu_indices(n, 1)
-    lo, hi = min(P[iu].min(), M[iu].min()), max(P[iu].max(), M[iu].max())
+
+    lo = min(D[k][iu].min() for k in names)
+    hi = max(D[k][iu].max() for k in names)
     pad = (hi - lo) * 0.06
     lo, hi = lo - pad, hi + pad
 
-    W, LANE, ROW_H = 1080, 46, 140
-    L, R = 152, W - 40
+    W, LANE, ROW_H = 1080, 30, 60 + 30 * len(names)
+    L, R = 160, W - 40
 
     def sx(v):
         return L + (v - lo) / (hi - lo) * (R - L)
 
-    # Order concepts by how much the model rearranged their neighbourhood, so the
-    # rows that carry the result are the ones read first.
-    shift = {w: float(np.abs(P[i] - M[i]).sum()) for i, w in enumerate(vocab)}
+    def rho(a, b):
+        return d["pairwise"].get(f"{a}|{b}", d["pairwise"].get(f"{b}|{a}"))
+
+    # ---- agreement matrix -------------------------------------------------
+    CELL, MX0, MY0 = 74, 150, 34
+    mat = []
+    for r, a in enumerate(names):
+        mat.append(f'<text x="{MX0 - 10}" y="{MY0 + r * CELL + CELL/2 + 4:.0f}" '
+                   f'class="mlabel" fill="{COLOR[a]}">{a}</text>')
+        mat.append(f'<text x="{MX0 + r * CELL + CELL/2:.0f}" y="{MY0 - 10}" '
+                   f'class="mtop" fill="{COLOR[a]}">{a}</text>')
+        for c, b in enumerate(names):
+            x, y = MX0 + c * CELL, MY0 + r * CELL
+            if a == b:
+                mat.append(f'<rect x="{x}" y="{y}" width="{CELL-3}" height="{CELL-3}" '
+                           f'rx="5" class="selfcell"/>')
+                mat.append(f'<text x="{x+CELL/2-1.5:.0f}" y="{y+CELL/2+4:.0f}" '
+                           f'class="cellv dim">{d["ceiling"][a]:.2f}</text>')
+                continue
+            v = rho(a, b)
+            # One shared scale from 0 to the ceiling: a cell is bright when two
+            # corpora agree as much as a corpus agrees with itself.
+            t = max(0.0, min(1.0, v / max(d["ceiling"].values())))
+            mat.append(f'<rect x="{x}" y="{y}" width="{CELL-3}" height="{CELL-3}" rx="5" '
+                       f'fill="#f59e0b" fill-opacity="{0.06 + 0.80*t:.3f}"/>')
+            mat.append(f'<text x="{x+CELL/2-1.5:.0f}" y="{y+CELL/2+4:.0f}" '
+                       f'class="cellv">{v:.2f}</text>')
+    MH = MY0 + len(names) * CELL + 12
+
+    # ---- per-concept lanes ------------------------------------------------
+    shift = {w: float(sum(np.abs(D[a][i] - D[b][i]).sum()
+                          for a in names for b in names if a < b))
+             for i, w in enumerate(vocab)}
     order = sorted(range(n), key=lambda i: -shift[vocab[i]])
 
     rows = []
     for slot, i in enumerate(order):
-        y = 30 + slot * ROW_H
-        yp, ym = y + 34, y + 34 + LANE
-        seg = [f'<text x="14" y="{y + 20:.0f}" class="rowname">{vocab[i]}</text>',
-               f'<text x="{L - 12}" y="{yp + 4:.0f}" class="lane">people</text>',
-               f'<text x="{L - 12}" y="{ym + 4:.0f}" class="lane">model</text>',
-               f'<line x1="{L}" y1="{yp}" x2="{R}" y2="{yp}" class="axis"/>',
-               f'<line x1="{L}" y1="{ym}" x2="{R}" y2="{ym}" class="axis"/>']
-        moves = sorted(((abs(P[i, j] - M[i, j]), j) for j in range(n) if j != i),
-                       reverse=True)
-        big = {j for _, j in moves[:2]}
-        tagged: list[float] = []
+        y = 26 + slot * ROW_H
+        rows.append(f'<text x="14" y="{y + 18:.0f}" class="rowname">{vocab[i]}</text>')
+        lane_y = {}
+        for li, name in enumerate(names):
+            ly = y + 34 + li * LANE
+            lane_y[name] = ly
+            rows.append(f'<text x="{L - 12}" y="{ly + 4:.0f}" class="lane" '
+                        f'fill="{COLOR[name]}">{name}</text>')
+            rows.append(f'<line x1="{L}" y1="{ly}" x2="{R}" y2="{ly}" class="axis"/>')
         for j in range(n):
             if j == i:
                 continue
-            x1, x2 = sx(P[i, j]), sx(M[i, j])
-            cls = "link big" if j in big else "link"
-            seg.append(f'<line x1="{x1:.1f}" y1="{yp}" x2="{x2:.1f}" y2="{ym}" class="{cls}"/>')
-            seg.append(f'<circle cx="{x1:.1f}" cy="{yp}" r="4" class="ppl"/>')
-            seg.append(f'<circle cx="{x2:.1f}" cy="{ym}" r="4" class="mdl"/>')
-            if j in big:
-                anchor = "end" if x2 < x1 else "start"
-                dx = -7 if x2 < x1 else 7
-                # Two movers landing near each other overprint into an unreadable
-                # smear ("copaurty"), so the second one drops to its own line.
-                dy = 17 if not any(abs(x2 - px) < 95 for px in tagged) else 32
-                tagged.append(x2)
-                seg.append(f'<text x="{x2 + dx:.1f}" y="{ym + dy:.0f}" '
-                           f'class="tag" text-anchor="{anchor}">{vocab[j]}</text>')
-        rows.append("".join(seg))
+            pts = [(sx(D[k][i, j]), lane_y[k]) for k in names]
+            # Highlight exactly the finding: the models landing close together
+            # while people sit clearly away from them. Left uniform, the threads
+            # show that something differs but not what, and the eye cannot pick
+            # the agreeing block out of nine overlapping lines.
+            mvals = [D[k][i, j] for k in names if k != "people"]
+            spread = max(mvals) - min(mvals)
+            apart = abs(D["people"][i, j] - float(np.mean(mvals)))
+            cls = "thread agree" if (len(mvals) > 1 and apart > 2.2 * spread
+                                     and apart > 0.02) else "thread"
+            rows.append('<polyline points="' +
+                        " ".join(f"{x:.1f},{y_:.0f}" for x, y_ in pts) +
+                        f'" class="{cls}"/>')
+            for k in names:
+                rows.append(f'<circle cx="{sx(D[k][i, j]):.1f}" cy="{lane_y[k]}" '
+                            f'r="3.6" fill="{COLOR[k]}"/>')
 
     ticks = "".join(
-        f'<line x1="{sx(v):.1f}" y1="18" x2="{sx(v):.1f}" y2="{30 + n * ROW_H - 26:.0f}" '
-        f'class="grid"/><text x="{sx(v):.1f}" y="13" class="tick">{v:.2f}</text>'
+        f'<line x1="{sx(v):.1f}" y1="16" x2="{sx(v):.1f}" y2="{26 + n*ROW_H - 30:.0f}" '
+        f'class="grid"/><text x="{sx(v):.1f}" y="11" class="tick">{v:.2f}</text>'
         for v in np.linspace(lo + pad, hi - pad, 5))
+    H = 26 + n * ROW_H
 
-    H = 30 + n * ROW_H + 10
+    models = [x for x in names if x != "people"]
     html = f"""<!doctype html><meta charset="utf-8">
-<title>Two political semantic spaces</title>
+<title>Models converge with each other, not with us</title>
 <style>
  body{{margin:0;background:#0f1115;color:#e7e9ee;
       font:15px/1.55 ui-sans-serif,system-ui,-apple-system,sans-serif}}
- .wrap{{max-width:1140px;margin:0 auto;padding:34px 26px 56px}}
- h1{{font-size:26px;margin:0 0 8px;letter-spacing:-.02em}}
- .sub{{color:#9aa3b2;max-width:70ch;margin:0 0 10px}}
- .head{{display:flex;gap:26px;flex-wrap:wrap;margin:20px 0 26px}}
- .stat{{background:#151821;border:1px solid #232838;border-radius:10px;padding:12px 18px}}
- .stat b{{display:block;font-size:23px;font-variant-numeric:tabular-nums}}
+ .wrap{{max-width:1140px;margin:0 auto;padding:34px 26px 60px}}
+ h1{{font-size:27px;margin:0 0 8px;letter-spacing:-.02em}}
+ h2{{font-size:17px;margin:34px 0 6px}}
+ .sub{{color:#9aa3b2;max-width:72ch;margin:0 0 14px}}
+ .head{{display:flex;gap:22px;flex-wrap:wrap;margin:22px 0 8px}}
+ .stat{{background:#151821;border:1px solid #232838;border-radius:10px;padding:13px 19px}}
+ .stat b{{display:block;font-size:25px;font-variant-numeric:tabular-nums}}
  .stat span{{color:#9aa3b2;font-size:12.5px}}
- .verdict{{background:#151821;border-left:3px solid #f59e0b;padding:13px 18px;
-           border-radius:0 8px 8px 0;margin:0 0 26px;max-width:78ch}}
+ .verdict{{background:#151821;border-left:3px solid #f59e0b;padding:14px 18px;
+           border-radius:0 8px 8px 0;margin:20px 0 0;max-width:80ch}}
  svg{{background:#151821;border:1px solid #232838;border-radius:12px}}
- .axis{{stroke:#2b3242;stroke-width:1}}
- .grid{{stroke:#1d2330;stroke-width:1}}
+ .axis{{stroke:#2b3242;stroke-width:1}} .grid{{stroke:#1d2330;stroke-width:1}}
  .tick{{fill:#6b7688;font-size:11px;text-anchor:middle}}
- .link{{stroke:#475569;stroke-width:1.3}}
- .link.big{{stroke:#f59e0b;stroke-width:2.2}}
- .ppl{{fill:#60a5fa}} .mdl{{fill:#fb923c}}
+ .thread{{fill:none;stroke:#3f4a5c;stroke-width:1.1;stroke-opacity:.6}}
+ .thread.agree{{stroke:#f59e0b;stroke-width:2;stroke-opacity:.95}}
  .rowname{{fill:#e7e9ee;font-size:15.5px;font-weight:700}}
- .lane{{fill:#6b7688;font-size:10.5px;text-anchor:end;text-transform:uppercase;
-        letter-spacing:.06em}}
- .tag{{fill:#f59e0b;font-size:11px}}
- .note{{color:#9aa3b2;font-size:13.5px;max-width:76ch;margin:22px 0 0}}
- code{{background:#1b2130;padding:1px 5px;border-radius:4px;font-size:12.5px}}
+ .lane{{font-size:10.5px;text-anchor:end;text-transform:uppercase;letter-spacing:.06em}}
+ .selfcell{{fill:#1b2130;stroke:#2b3242}}
+ .cellv{{fill:#0f1115;font-size:15px;font-weight:700;text-anchor:middle}}
+ .cellv.dim{{fill:#6b7688;font-weight:600}}
+ .mlabel{{font-size:13px;text-anchor:end;font-weight:600}}
+ .mtop{{font-size:13px;text-anchor:middle;font-weight:600}}
+ .note{{color:#9aa3b2;font-size:13.5px;max-width:78ch;margin:18px 0 0}}
 </style>
 <div class="wrap">
-<h1>Do people and a language model organise politics the same way?</h1>
+<h1>Three language models organise politics the same way as each other —
+and not the way people do</h1>
 <p class="sub">Ten political concepts, positioned by how they are actually
-<i>used</i> — in {d['n_posts']['people']:,} posts written by people, and
-{d['n_posts']['model']:,} written by a language model asked to post about the same
-topics. One identical instrument reads both, on the same amount of text, so the
-only thing that differs is who wrote it.</p>
+<i>used</i>. Four corpora, one identical instrument, matched to the same amount
+of text: {d['n_posts']['people']:,} posts written by people, and posts written by
+{len(models)} models built by different organisations
+({', '.join(models)}), each asked to post about topics drawn from the human
+corpus and never shown a human post.</p>
 
 <div class="head">
- <div class="stat"><b style="color:#60a5fa">{d['ceiling']:.2f}</b>
-   <span>how well each corpus agrees with ITSELF<br>— the most any comparison could show</span></div>
- <div class="stat"><b style="color:#fb923c">{d['cross_arm_rho']:.2f}</b>
-   <span>how well people and the model agree<br>with each other</span></div>
+ <div class="stat"><b style="color:#f59e0b">{d['model_model_mean']:.2f}</b>
+   <span>how much the models agree<br>with EACH OTHER</span></div>
+ <div class="stat"><b style="color:#60a5fa">{d['model_people_mean']:.2f}</b>
+   <span>how much they agree<br>with PEOPLE</span></div>
+ <div class="stat"><b>{max(d['ceiling'].values()):.2f}</b>
+   <span>ceiling: how well a corpus<br>agrees with itself</span></div>
  <div class="stat"><b>{d['matched_content_tokens']:,}</b>
-   <span>words of each, matched<br>so neither side saw more text</span></div>
+   <span>words of each, matched so no<br>corpus saw more text</span></div>
 </div>
 <p class="verdict">{d['verdict']}</p>
 
-<p class="sub">Each block below is one concept. The other nine are placed on its
-axis at their <b>measured distance</b> from it — people on the upper lane, the
-model on the lower. A steep line means the model moved that concept; a flat line
-means they agree. Nothing is projected or flattened: every position drawn is a
-number that was measured. Rows are ordered by how much the model rearranged that
-concept's neighbourhood, and its two largest movers are named.</p>
+<h2>Every pair, against the ceiling</h2>
+<p class="sub">Brighter means closer agreement. The diagonal is each corpus
+against itself — the most any comparison could show. The three models form a
+bright block; people stay dark against all of them.</p>
+<svg width="{MX0 + len(names)*CELL + 20}" height="{MH}">{''.join(mat)}</svg>
 
+<h2>Where the difference lives</h2>
+<p class="sub">One block per concept. The other nine sit on its axis at their
+<b>measured distance</b> from it, one lane per corpus, joined by a thread. Where
+a thread runs straight between the model lanes and then kinks at the people lane,
+the models agree and people differ &mdash; those threads are drawn in
+<b style="color:#f59e0b">amber</b>. Nothing is projected: every position drawn is
+a number that was measured.</p>
 <svg width="{W}" height="{H}" viewBox="0 0 {W} {H}">{ticks}{''.join(rows)}</svg>
 
-<p class="note">Distances are crowded into a narrow band (0.75–0.91), which is
-normal for this measure and is why the axis is stretched to that range rather
-than 0–1. It also means the <i>ordering</i> of neighbours carries the meaning,
-not the absolute numbers.</p>
-<p class="note">The obvious alternative — flatten both spaces to a 2-D map and
-draw arrows — was built first and rejected on evidence: two dimensions retain
-only <b>31%</b> of this structure, so most of what such a map shows would be an
-artefact of the flattening rather than the measurement.</p>
+<p class="note">Distances sit in a narrow band, normal for this measure, so the
+axis is stretched to the observed range rather than 0–1; the <i>ordering</i> of
+neighbours carries the meaning. Ceilings are split-half correlations corrected to
+full length by Spearman–Brown — uncorrected, they are measured on half the text
+the comparisons use and understate badly.</p>
+<p class="note">No 2-D map appears here on purpose: two dimensions retain only
+about 31% of this structure, so most of what such a map showed would be an
+artefact of the flattening rather than a measurement.</p>
 </div>"""
-    out = ROOT / args.out
-    out.write_text(html, encoding="utf-8")
-    print(f"wrote {out}")
-    print("\nconcepts whose neighbourhood the model rearranged most:")
-    for i in order[:5]:
-        j = max((k for k in range(n) if k != i), key=lambda k: abs(P[i, k] - M[i, k]))
-        who = "model holds them closer" if M[i, j] < P[i, j] else "people hold them closer"
-        print(f"  {vocab[i]:<11s} total shift {shift[vocab[i]]:.2f}"
-              f"   biggest: {vocab[j]} ({who})")
+    (ROOT / args.out).write_text(html, encoding="utf-8")
+    print(f"wrote {ROOT / args.out}")
     return 0
 
 
