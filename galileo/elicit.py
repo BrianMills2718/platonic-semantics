@@ -37,10 +37,7 @@ import json
 import pathlib
 import random
 import statistics
-import sys
 import time
-
-sys.path.insert(0, "/home/brian/code/llm_client")
 
 from llm_client import call_llm_json_schema  # noqa: E402
 from llm_client.prompts import render_prompt  # noqa: E402

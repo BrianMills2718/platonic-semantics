@@ -28,12 +28,9 @@ import itertools
 import json
 import pathlib
 import random
-import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
-sys.path.insert(0, "/home/brian/code/llm_client")
 
 from llm_client import call_llm_json_schema  # noqa: E402
 from llm_client.prompts import render_prompt  # noqa: E402
