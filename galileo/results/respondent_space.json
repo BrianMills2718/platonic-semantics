@@ -7,6 +7,11 @@
   "deepseek",
   "zhipu"
  ],
+ "human": [
+  "people (hostile)",
+  "people (neutral)",
+  "people (warm)"
+ ],
  "vocab": [
   "president",
   "government",

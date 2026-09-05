@@ -1,0 +1,50 @@
+<!doctype html><meta charset="utf-8">
+<title>The recovered dimension</title>
+<style>
+ body{margin:0;background:#0f1115;color:#e7e9ee;
+      font:15px/1.55 ui-sans-serif,system-ui,-apple-system,sans-serif}
+ .wrap{max-width:1000px;margin:0 auto;padding:34px 26px 60px}
+ h1{font-size:26px;margin:0 0 8px;letter-spacing:-.02em}
+ .sub-p{color:#9aa3b2;max-width:74ch;margin:0 0 20px}
+ svg{background:#151821;border:1px solid #232838;border-radius:12px}
+ .axis{stroke:#2b3242} .grid{stroke:#1d2330}
+ .bar{stroke:#3b82f6;stroke-width:2.5;stroke-opacity:.55}
+ .cap{stroke:#3b82f6;stroke-width:2;stroke-opacity:.55}
+ .pt{fill:#60a5fa}
+ .trend{fill:none;stroke:#f59e0b;stroke-width:2;stroke-dasharray:5 4;stroke-opacity:.8}
+ .rowname{fill:#e7e9ee;font-size:14px;font-weight:700;text-anchor:end}
+ .sub{fill:#6b7688;font-size:11px;text-anchor:end}
+ .stat{background:#151821;border-left:3px solid #f59e0b;padding:13px 18px;
+        border-radius:0 8px 8px 0;margin:20px 0;max-width:78ch}
+ .note{color:#9aa3b2;font-size:13.5px;max-width:76ch;margin:16px 0 0}
+ b{color:#e7e9ee}
+</style>
+<div class="wrap">
+<h1>Semantic geometry recovers the political sentiment scale</h1>
+<p class="sub-p">Five groups of people, separated only by how positive or
+negative their political posts are. Each was measured over the same ten
+concepts, on 103,273 words each. <b>The instrument
+never sees sentiment</b> — it sees only which words occur near which. Yet the
+space it recovers lines the groups up in sentiment order, top to bottom.</p>
+
+<svg width="900" height="462"><line x1="190" y1="34" x2="860" y2="34" class="axis"/><line x1="236.2" y1="28" x2="236.2" y2="392" class="grid"/><line x1="380.6" y1="28" x2="380.6" y2="392" class="grid"/><line x1="525.0" y1="28" x2="525.0" y2="392" class="grid"/><line x1="669.4" y1="28" x2="669.4" y2="392" class="grid"/><line x1="813.8" y1="28" x2="813.8" y2="392" class="grid"/><text x="168" y="57" class="rowname">most hostile</text><text x="168" y="71" class="sub">self 0.88</text><line x1="394.9" y1="52" x2="573.5" y2="52" class="bar"/><line x1="394.9" y1="46" x2="394.9" y2="58" class="cap"/><line x1="573.5" y1="46" x2="573.5" y2="58" class="cap"/><circle cx="484.2" cy="52" r="6" class="pt"/><text x="168" y="131" class="rowname">hostile</text><text x="168" y="145" class="sub">self 0.83</text><line x1="342.1" y1="126" x2="730.8" y2="126" class="bar"/><line x1="342.1" y1="120" x2="342.1" y2="132" class="cap"/><line x1="730.8" y1="120" x2="730.8" y2="132" class="cap"/><circle cx="536.5" cy="126" r="6" class="pt"/><text x="168" y="205" class="rowname">neutral</text><text x="168" y="219" class="sub">self 0.83</text><line x1="236.2" y1="200" x2="813.8" y2="200" class="bar"/><line x1="236.2" y1="194" x2="236.2" y2="206" class="cap"/><line x1="813.8" y1="194" x2="813.8" y2="206" class="cap"/><circle cx="525.0" cy="200" r="6" class="pt"/><text x="168" y="279" class="rowname">warm</text><text x="168" y="293" class="sub">self 0.83</text><line x1="364.4" y1="274" x2="741.9" y2="274" class="bar"/><line x1="364.4" y1="268" x2="364.4" y2="280" class="cap"/><line x1="741.9" y1="268" x2="741.9" y2="280" class="cap"/><circle cx="553.2" cy="274" r="6" class="pt"/><text x="168" y="353" class="rowname">warmest</text><text x="168" y="367" class="sub">self 0.83</text><line x1="683.6" y1="348" x2="808.3" y2="348" class="bar"/><line x1="683.6" y1="342" x2="683.6" y2="354" class="cap"/><line x1="808.3" y1="342" x2="808.3" y2="354" class="cap"/><circle cx="746.0" cy="348" r="6" class="pt"/><polyline points="484.2,52 536.5,126 525.0,200 553.2,274 746.0,348" class="trend"/></svg>
+
+<p class="stat">Of the <b>120</b> possible orderings of these five groups, the
+true sentiment order gives the strongest relationship between position and
+semantic distance — <b>0.79</b>, the highest any ordering achieves. Only it
+and its mirror reach that value: <b>p = 0.017</b>, exact.</p>
+
+<p class="note">Bars are not confidence intervals in the usual sense: each is how
+far that group's point moves when its own corpus is split in half and placed
+twice, so it is displacement from sampling alone. <b>The two middle groups
+overlap heavily and swap order</b> — they are 0.016 apart with bars of 0.26 and
+0.39, so nothing should be read into which of them comes first. The ordering
+claim rests on the whole sequence, which is what the permutation test above
+measures, not on any adjacent pair.</p>
+<p class="note">Reliability is high here (each group agrees with itself at
+0.83–0.89) because these groups were measured on the full human corpus rather
+than being cut down to match a smaller model corpus. In the combined
+people-and-models map the same groups are starved to 51,698 words and their
+self-agreement falls to 0.47–0.71, which is why their differences are not
+resolvable there.</p>
+</div>

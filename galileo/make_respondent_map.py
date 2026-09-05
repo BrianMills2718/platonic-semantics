@@ -53,7 +53,12 @@ def main() -> int:
     unit = (W - 2 * PAD) / (2 * span)
 
     y_sub_below = lambda y_name: y_name + 13
-    is_model = [not n.startswith("people") for n in names]
+    if "human" not in d:
+        raise RuntimeError(
+            "this data file predates the explicit 'human' list; regenerate it with "
+            "respondent_space.py rather than inferring group kind from names")
+    human = set(d["human"])
+    is_model = [n not in human for n in names]
     parts = []
     for i, n in enumerate(names):
         x, y = sx(P[i, 0]), sy(P[i, 1])
@@ -81,6 +86,9 @@ def main() -> int:
     mm = [D[i, j] for i in range(n) for j in range(i + 1, n) if is_model[i] and is_model[j]]
     hh = [D[i, j] for i in range(n) for j in range(i + 1, n)
           if not is_model[i] and not is_model[j]]
+    # A group that ends up empty means the classification is wrong, not that the
+    # mean is zero; nan in a headline is how the misclassification above surfaced.
+    fmt = lambda v: f"{np.mean(v):.2f}" if v else "n/a"
 
     html = f"""<!doctype html><meta charset="utf-8">
 <title>A map of worldviews</title>
@@ -132,8 +140,8 @@ about 31%, which is why concepts are never drawn flat in this project — at tha
 level a flat picture would be mostly an artefact of the flattening. Here it is
 mostly the measurement.</p>
 <p class="note">The three models sit in a tight group (mean disagreement
-<b>{np.mean(mm):.2f}</b>) while the three groups of people are scattered
-(<b>{np.mean(hh):.2f}</b>). People do not form a single human position that the
+<b>{fmt(mm)}</b>) while the three groups of people are scattered
+(<b>{fmt(hh)}</b>). People do not form a single human position that the
 models fail to reach; they disagree among themselves about as much as they
 disagree with the models. Note also how much larger the human circles are: at
 this corpus size the human groups are measured far less precisely than the
@@ -141,8 +149,8 @@ models, so their placements carry real uncertainty.</p>
 </div>"""
     (ROOT / args.out).write_text(html, encoding="utf-8")
     print(f"wrote {ROOT / args.out}")
-    print(f"\nmodel-model mean disagreement  {np.mean(mm):.3f}")
-    print(f"human-human mean disagreement  {np.mean(hh):.3f}")
+    print(f"\nmodel-model mean disagreement  {fmt(mm)}")
+    print(f"human-human mean disagreement  {fmt(hh)}")
     print("\nclosest pairs:")
     for v, a, b in pairs[:4]:
         print(f"  {a:<18s} {b:<18s} {v:.3f}")

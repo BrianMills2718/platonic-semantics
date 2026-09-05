@@ -1,0 +1,47 @@
+# The semantic space recovers the political sentiment scale
+
+**Result.** Five groups of people, separated only by how positive or negative
+their political writing is, were each measured over the same ten concepts. The
+instrument never sees sentiment — it sees only which words occur near which. The
+space it recovers nevertheless lines the five groups up in sentiment order.
+
+Of the **120** possible orderings of five groups, the true sentiment order gives
+the strongest relationship between a group's position and its semantic distance
+from the others: **ρ = 0.794**, which is the highest value *any* ordering
+achieves. Only it and its mirror reach it — **p = 0.017**, exact enumeration.
+
+Figure: `results/sentiment_dimension.html`. Data: `results/human_only_space.json`.
+
+## Why this is the Woelfel-shaped result
+
+Galileo's payload was never one map of concepts. It was the comparison *between*
+respondents — Bush voters and Dukakis voters each carrying a space — and the
+recovery of an attitude as a direction in that space. This is that: an attitude
+dimension (sentiment) recovered as a geometric one, from usage alone, without the
+attitude ever being shown to the instrument.
+
+## What is and is not established
+
+* **The ordering is real.** Tested globally by exact permutation, not eyeballed
+  from a monotone-looking staircase — which is a shape five noisy points produce
+  often enough to be worth guarding against.
+* **Adjacent groups are not separable.** Only 1 of 10 pairs (most hostile vs
+  warmest, 0.372) exceeds the combined sampling noise of its two members. The two
+  middle bands sit 0.016 apart with error bars of 0.26 and 0.39 and swap order on
+  the first axis. Nothing should be read into which of them comes first; the
+  claim is about the sequence as a whole.
+* **This says nothing about causation.** Sentiment may organise the semantics, or
+  both may follow from which topics each group writes about. Holding topic fixed
+  while varying sentiment would separate those, and has not been done.
+
+## Why the numbers here beat the combined map
+
+These groups agree with themselves at **0.83–0.89**. In `respondent_map.html`,
+where the same groups sit alongside three models, they agree with themselves at
+only **0.47–0.71** and their differences are not resolvable.
+
+The reason is the matched-corpus rule: every corpus is cut to the smallest, and
+the smallest was a model corpus at 51,698 content tokens. Removing the models
+lets each human group have **103,273**, and the measurement roughly doubles in
+precision. A weak arm does not merely add a weak arm — it degrades every other
+one, so comparisons that do not need it should not include it.

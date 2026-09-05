@@ -81,7 +81,9 @@ def human_groups(shard, rng, n_groups=3):
     posts.sort(key=lambda p: p["sentiment"])
     cut = len(posts) // n_groups
     names = ({0: "people (hostile)", 1: "people (neutral)", 2: "people (warm)"}
-             if n_groups == 3 else {})
+             if n_groups == 3 else
+             {0: "most hostile", 1: "hostile", 2: "neutral", 3: "warm", 4: "warmest"}
+             if n_groups == 5 else {})
     out = {}
     for i in range(n_groups):
         chunk = posts[i * cut:(i + 1) * cut] if i < n_groups - 1 else posts[i * cut:]
@@ -105,6 +107,10 @@ def main() -> int:
 
     rng = random.Random(20260905)
     corpora = human_groups(args.shard, rng, args.human_groups)
+    # Recorded explicitly rather than inferred downstream from the name. A
+    # consumer guessing "is this a model?" from a name prefix silently
+    # misclassified every human band the moment the labels changed.
+    human_names = list(corpora)
     for spec in args.corpus:
         name, _, path = spec.partition("=")
         rows = [json.loads(l) for l in (ROOT / path).read_text(
@@ -190,7 +196,7 @@ def main() -> int:
     out = ROOT / args.out
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({
-        "respondents": names, "vocab": vocab,
+        "respondents": names, "human": human_names, "vocab": vocab,
         "matched_content_tokens": budget,
         "n_posts": {k: len(v) for k, v in corpora.items()},
         "disagreement": D.tolist(),

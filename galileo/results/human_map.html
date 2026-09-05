@@ -1,0 +1,57 @@
+<!doctype html><meta charset="utf-8">
+<title>A map of worldviews</title>
+<style>
+ body{margin:0;background:#0f1115;color:#e7e9ee;
+      font:15px/1.55 ui-sans-serif,system-ui,-apple-system,sans-serif}
+ .wrap{max-width:1120px;margin:0 auto;padding:34px 26px 60px}
+ h1{font-size:27px;margin:0 0 8px;letter-spacing:-.02em}
+ .sub-p{color:#9aa3b2;max-width:72ch;margin:0 0 18px}
+ .cols{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start}
+ svg{background:#151821;border:1px solid #232838;border-radius:12px}
+ .err{fill-opacity:.13;stroke-opacity:.42;stroke-width:1}
+ .err.model{fill:#fb923c;stroke:#fb923c} .err.human{fill:#60a5fa;stroke:#60a5fa}
+ .pt.model{fill:#fb923c} .pt.human{fill:#60a5fa}
+ .lbl{font-size:13px;font-weight:700;text-anchor:middle}
+ .lbl.model{fill:#fdba74} .lbl.human{fill:#93c5fd}
+ .sub{fill:#6b7688;font-size:10.5px;text-anchor:middle}
+ table{border-collapse:collapse;font-size:13px;margin:2px 0 16px}
+ td{padding:4px 12px 4px 0;border-bottom:1px solid #232838}
+ td.n{text-align:right;font-variant-numeric:tabular-nums;color:#f59e0b}
+ h3{font-size:13px;margin:14px 0 4px;color:#9aa3b2;text-transform:uppercase;
+     letter-spacing:.06em}
+ .note{color:#9aa3b2;font-size:13.5px;max-width:74ch;margin:18px 0 0}
+ b{color:#e7e9ee}
+</style>
+<div class="wrap">
+<h1>A map of worldviews</h1>
+<p class="sub-p">Woelfel's move, one level up. Each point is not a concept but a
+whole population — three language models, and three groups of people writing
+about politics with different sentiment. Every one of them was measured over the
+same ten concepts, on the same amount of text. Distance is how much two of them
+disagree about how those concepts relate.</p>
+
+<div class="cols">
+<svg width="900" height="700"><circle cx="376.9" cy="283.1" r="76.9" class="err human"/><circle cx="422.0" cy="362.2" r="167.5" class="err human"/><circle cx="412.1" cy="389.8" r="248.9" class="err human"/><circle cx="436.4" cy="382.0" r="162.7" class="err human"/><circle cx="602.6" cy="332.9" r="53.7" class="err human"/><circle cx="376.9" cy="283.1" r="5.5" class="pt human"/><text x="376.9" y="267.1" class="lbl human">most hostile</text><text x="376.9" y="254.1" class="sub">self 0.88</text><circle cx="422.0" cy="362.2" r="5.5" class="pt human"/><text x="422.0" y="388.2" class="lbl human">hostile</text><text x="422.0" y="401.2" class="sub">self 0.83</text><circle cx="412.1" cy="389.8" r="5.5" class="pt human"/><text x="412.1" y="415.8" class="lbl human">neutral</text><text x="412.1" y="428.8" class="sub">self 0.83</text><circle cx="436.4" cy="382.0" r="5.5" class="pt human"/><text x="436.4" y="408.0" class="lbl human">warm</text><text x="436.4" y="421.0" class="sub">self 0.83</text><circle cx="602.6" cy="332.9" r="5.5" class="pt human"/><text x="602.6" y="316.9" class="lbl human">warmest</text><text x="602.6" y="303.9" class="sub">self 0.83</text></svg>
+<div>
+<h3>Closest pairs</h3>
+<table><tr><td>hostile</td><td>neutral</td><td class='n'>0.13</td></tr><tr><td>neutral</td><td>warm</td><td class='n'>0.15</td></tr><tr><td>hostile</td><td>warm</td><td class='n'>0.20</td></tr><tr><td>most hostile</td><td>hostile</td><td class='n'>0.22</td></tr></table>
+<h3>Furthest apart</h3>
+<table><tr><td>hostile</td><td>warmest</td><td class='n'>0.31</td></tr><tr><td>neutral</td><td>warmest</td><td class='n'>0.33</td></tr><tr><td>most hostile</td><td>warmest</td><td class='n'>0.37</td></tr></table>
+<p class="note">Shaded circle = how far a point moves when its own corpus is
+split in half and placed twice. That is sampling noise, not disagreement.
+<b>Points nearer than their circles are not measurably apart.</b></p>
+</div></div>
+
+<p class="note">This map keeps <b>82%</b> of the real
+structure in two dimensions. The equivalent map of <i>concepts</i> keeps only
+about 31%, which is why concepts are never drawn flat in this project — at that
+level a flat picture would be mostly an artefact of the flattening. Here it is
+mostly the measurement.</p>
+<p class="note">The three models sit in a tight group (mean disagreement
+<b>n/a</b>) while the three groups of people are scattered
+(<b>0.25</b>). People do not form a single human position that the
+models fail to reach; they disagree among themselves about as much as they
+disagree with the models. Note also how much larger the human circles are: at
+this corpus size the human groups are measured far less precisely than the
+models, so their placements carry real uncertainty.</p>
+</div>
