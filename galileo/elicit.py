@@ -175,7 +175,8 @@ def elicit_averaged(model, pairs, rod, trace_id, budget, n_perms, rng,
     return mean, per_perm, raw_mean
 
 
-def elicit(model, pairs, rod, trace_id, budget, relation=None, context_concepts=None):
+def elicit(model, pairs, rod, trace_id, budget, relation=None, context_concepts=None,
+           allow_partial=False):
     messages = render_prompt(
         PROMPT,
         rod_a=rod[0], rod_b=rod[1], rod_value=rod[2],
@@ -203,12 +204,18 @@ def elicit(model, pairs, rod, trace_id, budget, relation=None, context_concepts=
             continue                      # a stray entry outside the list; drop it
         by_pair[i] = float(entry["distance"])
     missing = [i for i in range(1, len(pairs) + 1) if i not in by_pair]
-    if missing:
+    if missing and not allow_partial:
         raise RuntimeError(
             f"no judgment returned for pair(s) {missing[:5]}"
             f"{'...' if len(missing) > 5 else ''} of {len(pairs)}")
-    vals = [by_pair[i] for i in range(1, len(pairs) + 1)]
-    if any(v < 0 for v in vals):
+    # With `allow_partial` a dropped judgment becomes a gap rather than a dead
+    # run. Some models silently omit a few entries from a long list, and killing
+    # a whole multi-batch elicitation over five missing judgments out of 53
+    # throws away work that repeated permutations can recover. The caller is then
+    # responsible for failing if a pair is missing from EVERY permutation, which
+    # is the level at which the data really is absent.
+    vals = [by_pair.get(i) for i in range(1, len(pairs) + 1)]
+    if any(v is not None and v < 0 for v in vals):
         raise RuntimeError("negative distance returned; the scale is not being honoured")
     return vals, result
 

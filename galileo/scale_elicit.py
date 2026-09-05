@@ -82,12 +82,18 @@ def main() -> int:
     ap.add_argument("--batch", type=int, default=40, help="new pairs per call")
     ap.add_argument("--permutations", type=int, default=3)
     ap.add_argument("--budget", type=float, default=2.50)
+    ap.add_argument("--seed", type=int, default=20260905,
+                    help="controls which pairs share a batch. Two models run on the "
+                         "SAME seed get the identical batch partition, so any "
+                         "block structure left by imperfect equating is imposed on "
+                         "both matrices and could be mistaken for shared semantics. "
+                         "Re-running one model on a different seed is the control.")
     ap.add_argument("--out", default="results/scaled_space.json")
     args = ap.parse_args()
 
     concepts = load_concepts(ROOT / args.concepts, args.n_concepts)
     all_pairs = list(itertools.combinations(concepts, 2))
-    rng = random.Random(20260905)
+    rng = random.Random(args.seed)
     rng.shuffle(all_pairs)
 
     # Anchors are drawn from the same pool so they are ordinary pairs, not a
@@ -112,12 +118,24 @@ def main() -> int:
         for _ in range(args.permutations):
             idx = list(range(len(pairs)))
             rng.shuffle(idx)
-            vals, _ = elicit(args.model, [pairs[i] for i in idx], rod, trace, args.budget)
-            restored = [0.0] * len(pairs)
+            vals, _ = elicit(args.model, [pairs[i] for i in idx], rod, trace,
+                             args.budget, allow_partial=True)
+            restored = [None] * len(pairs)
             for slot, orig in enumerate(idx):
                 restored[orig] = vals[slot]
-            per.append(rescale_to_unit_mean(restored))
-        mean = [statistics.fmean(c) for c in zip(*per)]
+            got = [v for v in restored if v is not None]
+            if len(got) < len(pairs) * 0.7:
+                continue          # too thin to rescale meaningfully; drop this order
+            m = statistics.fmean(got) or 1.0
+            per.append([None if v is None else v / m for v in restored])
+        if not per:
+            raise RuntimeError(f"batch {bi+1}: no usable permutation")
+        mean = []
+        for col in zip(*per):
+            seen = [v for v in col if v is not None]
+            if not seen:
+                raise RuntimeError(f"batch {bi+1}: a pair was missing from every order")
+            mean.append(statistics.fmean(seen))
         scaled, factor, drift = equate(mean, anchor_idx, reference)
         if reference is None:
             reference = [scaled[i] for i in anchor_idx]
@@ -153,6 +171,7 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({
         "model": args.model, "concepts": concepts, "rod": list(rod),
+        "batch_seed": args.seed,
         "n_pairs": len(all_pairs), "batches": len(batches),
         "anchors": [list(a) for a in anchors],
         "anchor_drift": drifts, "permutations": args.permutations,

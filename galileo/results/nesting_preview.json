@@ -1,0 +1,92 @@
+{
+ "concepts": [
+  "animal",
+  "mammal",
+  "dog",
+  "wolf",
+  "cat",
+  "bird",
+  "fish",
+  "whale",
+  "dolphin",
+  "horse",
+  "elephant",
+  "mouse",
+  "cheetah",
+  "turtle",
+  "plant",
+  "tree",
+  "flower",
+  "leaf",
+  "branch",
+  "petal",
+  "forest",
+  "water",
+  "ocean",
+  "sea",
+  "river",
+  "stream",
+  "mountain",
+  "sky",
+  "rain",
+  "snow",
+  "ice",
+  "fire",
+  "smoke",
+  "heat",
+  "cold",
+  "hot",
+  "wet",
+  "bright",
+  "dark",
+  "light"
+ ],
+ "models": [
+  "deepseek-v4-flash",
+  "gpt-5.6-luna"
+ ],
+ "rows": [
+  {
+   "k": 4,
+   "singleton_share": 0.0,
+   "beat_chance": 1,
+   "pairs": 1,
+   "recovery": 0.575755378638885
+  },
+  {
+   "k": 6,
+   "singleton_share": 0.16666666666666666,
+   "beat_chance": 1,
+   "pairs": 1,
+   "recovery": 0.5430587537412502
+  },
+  {
+   "k": 8,
+   "singleton_share": 0.25,
+   "beat_chance": 1,
+   "pairs": 1,
+   "recovery": 0.6979989419957029
+  },
+  {
+   "k": 10,
+   "singleton_share": 0.30000000000000004,
+   "beat_chance": 1,
+   "pairs": 1,
+   "recovery": 0.7482939513696429
+  },
+  {
+   "k": 12,
+   "singleton_share": 0.25,
+   "beat_chance": 1,
+   "pairs": 1,
+   "recovery": 0.7458183694992597
+  },
+  {
+   "k": 15,
+   "singleton_share": 0.3,
+   "beat_chance": 1,
+   "pairs": 1,
+   "recovery": 0.632030547428397
+  }
+ ]
+}
