@@ -1,0 +1,57 @@
+<!doctype html><meta charset="utf-8">
+<title>A map of worldviews</title>
+<style>
+ body{margin:0;background:#0f1115;color:#e7e9ee;
+      font:15px/1.55 ui-sans-serif,system-ui,-apple-system,sans-serif}
+ .wrap{max-width:1120px;margin:0 auto;padding:34px 26px 60px}
+ h1{font-size:27px;margin:0 0 8px;letter-spacing:-.02em}
+ .sub-p{color:#9aa3b2;max-width:72ch;margin:0 0 18px}
+ .cols{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start}
+ svg{background:#151821;border:1px solid #232838;border-radius:12px}
+ .err{fill-opacity:.13;stroke-opacity:.42;stroke-width:1}
+ .err.model{fill:#fb923c;stroke:#fb923c} .err.human{fill:#60a5fa;stroke:#60a5fa}
+ .pt.model{fill:#fb923c} .pt.human{fill:#60a5fa}
+ .lbl{font-size:13px;font-weight:700;text-anchor:middle}
+ .lbl.model{fill:#fdba74} .lbl.human{fill:#93c5fd}
+ .sub{fill:#6b7688;font-size:10.5px;text-anchor:middle}
+ table{border-collapse:collapse;font-size:13px;margin:2px 0 16px}
+ td{padding:4px 12px 4px 0;border-bottom:1px solid #232838}
+ td.n{text-align:right;font-variant-numeric:tabular-nums;color:#f59e0b}
+ h3{font-size:13px;margin:14px 0 4px;color:#9aa3b2;text-transform:uppercase;
+     letter-spacing:.06em}
+ .note{color:#9aa3b2;font-size:13.5px;max-width:74ch;margin:18px 0 0}
+ b{color:#e7e9ee}
+</style>
+<div class="wrap">
+<h1>A map of worldviews</h1>
+<p class="sub-p">Woelfel's move, one level up. Each point is not a concept but a
+whole population — three language models, and three groups of people writing
+about politics with different sentiment. Every one of them was measured over the
+same ten concepts, on the same amount of text. Distance is how much two of them
+disagree about how those concepts relate.</p>
+
+<div class="cols">
+<svg width="900" height="700"><circle cx="432.4" cy="450.2" r="155.9" class="err human"/><circle cx="279.3" cy="352.3" r="145.3" class="err human"/><circle cx="307.2" cy="292.6" r="74.1" class="err human"/><circle cx="538.8" cy="373.1" r="72.4" class="err model"/><circle cx="566.2" cy="298.1" r="67.4" class="err model"/><circle cx="576.1" cy="333.6" r="59.2" class="err model"/><circle cx="432.4" cy="450.2" r="5.5" class="pt human"/><text x="432.4" y="476.2" class="lbl human">people (hostile)</text><text x="432.4" y="489.2" class="sub">self 0.60</text><circle cx="279.3" cy="352.3" r="5.5" class="pt human"/><text x="279.3" y="378.3" class="lbl human">people (neutral)</text><text x="279.3" y="391.3" class="sub">self 0.47</text><circle cx="307.2" cy="292.6" r="5.5" class="pt human"/><text x="307.2" y="276.6" class="lbl human">people (warm)</text><text x="307.2" y="263.6" class="sub">self 0.70</text><circle cx="538.8" cy="373.1" r="5.5" class="pt model"/><text x="538.8" y="399.1" class="lbl model">openai</text><text x="538.8" y="412.1" class="sub">self 0.80</text><circle cx="566.2" cy="298.1" r="5.5" class="pt model"/><text x="566.2" y="282.1" class="lbl model">deepseek</text><text x="566.2" y="269.1" class="sub">self 0.69</text><circle cx="576.1" cy="333.6" r="5.5" class="pt model"/><text x="576.1" y="317.6" class="lbl model">zhipu</text><text x="576.1" y="304.6" class="sub">self 0.81</text></svg>
+<div>
+<h3>Closest pairs</h3>
+<table><tr><td>deepseek</td><td>zhipu</td><td class='n'>0.24</td></tr><tr><td>people (neutral)</td><td>people (warm)</td><td class='n'>0.39</td></tr><tr><td>openai</td><td>zhipu</td><td class='n'>0.43</td></tr><tr><td>openai</td><td>deepseek</td><td class='n'>0.43</td></tr></table>
+<h3>Furthest apart</h3>
+<table><tr><td>people (neutral)</td><td>zhipu</td><td class='n'>0.74</td></tr><tr><td>people (warm)</td><td>zhipu</td><td class='n'>0.74</td></tr><tr><td>people (neutral)</td><td>deepseek</td><td class='n'>0.79</td></tr></table>
+<p class="note">Shaded circle = how far a point moves when its own corpus is
+split in half and placed twice. That is sampling noise, not disagreement.
+<b>Points nearer than their circles are not measurably apart.</b></p>
+</div></div>
+
+<p class="note">This map keeps <b>78%</b> of the real
+structure in two dimensions. The equivalent map of <i>concepts</i> keeps only
+about 31%, which is why concepts are never drawn flat in this project — at that
+level a flat picture would be mostly an artefact of the flattening. Here it is
+mostly the measurement.</p>
+<p class="note">The three models sit in a tight group (mean disagreement
+<b>0.37</b>) while the three groups of people are scattered
+(<b>0.54</b>). People do not form a single human position that the
+models fail to reach; they disagree among themselves about as much as they
+disagree with the models. Note also how much larger the human circles are: at
+this corpus size the human groups are measured far less precisely than the
+models, so their placements carry real uncertainty.</p>
+</div>
