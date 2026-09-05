@@ -44,6 +44,15 @@ section{margin-top:clamp(2rem,4vw,3rem)}
 .prose{display:flex;flex-direction:column;gap:.8rem}
 .prose p{color:var(--ink-soft)}
 
+.howto{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:1rem}
+@media(min-width:760px){.howto{grid-template-columns:repeat(4,1fr)}}
+.how{background:var(--panel);padding:1rem;display:flex;flex-direction:column;gap:.4rem}
+.how svg{width:60px;height:40px;display:block}
+.how b{font-size:.92rem}
+.how span{font-size:.82rem;color:var(--muted);line-height:1.45}
+.stim{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem 1.4rem;background:var(--sunk);border-left:3px solid var(--accent);padding:.9rem 1.1rem;margin:.3rem 0}
+.stim code{display:block;font-family:var(--mono);font-size:.95rem;color:var(--ink);margin-top:.15rem}
+.arrowto{color:var(--muted);font-size:1.2rem}
 .stage{margin-top:1.1rem;border:1px solid var(--line);background:var(--panel)}
 .ctl{display:flex;flex-wrap:wrap;gap:.8rem 1.4rem;align-items:center;padding:.9rem 1.1rem;border-bottom:1px solid var(--line);background:var(--sunk)}
 .ctl label{display:flex;align-items:center;gap:.6rem;font-size:.85rem;color:var(--ink-soft)}
@@ -79,26 +88,73 @@ tr:last-child td{border-bottom:none}
 
 <div class="wrap">
 <header>
-  <span class="eyebrow">Platonic Semantics &middot; Run 003 &middot; small tier</span>
-  <h1>What six words of context do to a shared semantic space</h1>
-  <p class="lede">Every earlier result in this project showed the models bare single
-  words. This is the same four systems, the same 212 concepts, asked again with each
-  word sitting inside a sentence.</p>
+  <span class="eyebrow">Platonic Semantics &middot; Run 003</span>
+  <h1>Four AIs were asked which words belong together. Then they were asked again, in sentences.</h1>
+  <p class="lede">This is a map of 212 everyday words &mdash; <em>dog, hospital, anger,
+  hammer</em>. Nobody placed them. Four language models, built by different labs, were
+  each asked which words sit near which, and words that the models <em>agree</em> belong
+  together got pulled close.</p>
+  <p class="lede" style="max-width:62ch">So distance here is not similarity. It is
+  <strong>consensus</strong>. Two words are near each other because independently built
+  systems put them together.</p>
 </header>
 
 <section>
+  <h2>How to read it</h2>
+  <div class="howto">
+    <div class="how">
+      <svg viewBox="0 0 60 40" aria-hidden="true"><defs><radialGradient id="gs"><stop offset="0" stop-color="var(--g0)" stop-opacity=".95"/><stop offset="1" stop-color="var(--g0)" stop-opacity="0"/></radialGradient></defs>
+        <circle cx="30" cy="20" r="16" fill="url(#gs)"/><circle cx="30" cy="20" r="5.5" fill="var(--g0)"/></svg>
+      <b>A sharp dot</b><span>All four systems put this word in the same company. It has a
+      definite place.</span>
+    </div>
+    <div class="how">
+      <svg viewBox="0 0 60 40" aria-hidden="true"><defs><radialGradient id="gf"><stop offset="0" stop-color="var(--g2)" stop-opacity=".38"/><stop offset="1" stop-color="var(--g2)" stop-opacity="0"/></radialGradient></defs>
+        <circle cx="30" cy="20" r="19" fill="url(#gf)"/><circle cx="30" cy="20" r="2.2" fill="var(--g2)" fill-opacity=".55"/></svg>
+      <b>A smear</b><span>The systems disagree about where it belongs. The blur is the
+      disagreement, measured &mdash; not a graphic effect.</span>
+    </div>
+    <div class="how">
+      <svg viewBox="0 0 60 40" aria-hidden="true">
+        <line x1="8" y1="26" x2="52" y2="26" stroke="var(--edge)" stroke-width="0.7" stroke-opacity=".35"/>
+        <line x1="8" y1="14" x2="52" y2="14" stroke="var(--edge)" stroke-width="2.6" stroke-opacity=".8"/>
+        <circle cx="8" cy="14" r="3" fill="var(--g4)"/><circle cx="52" cy="14" r="3" fill="var(--g4)"/>
+        <circle cx="8" cy="26" r="3" fill="var(--g1)"/><circle cx="52" cy="26" r="3" fill="var(--g1)"/></svg>
+      <b>A line</b><span>The systems call these two words neighbours. Thick and bright
+      means all four agree; faint means only one did.</span>
+    </div>
+    <div class="how">
+      <svg viewBox="0 0 60 40" aria-hidden="true">
+        <circle cx="14" cy="20" r="5" fill="var(--g0)"/><circle cx="30" cy="20" r="5" fill="var(--g2)"/><circle cx="46" cy="20" r="5" fill="var(--g1)"/></svg>
+      <b>Colour</b><span>The kind of thing a word is &mdash; people, objects, living
+      things, ideas, actions. Given by us, not by the models: it is how you check the
+      map is not noise.</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Now change one thing</h2>
   <div class="prose">
-    <p><strong>Drag the slider.</strong> Positions are fixed — they come from the
-    combined agreement of both conditions, so nothing moves and you are watching only
-    what changes. A concept is drawn as sharp as the four systems agree on its
-    neighbours, and a link is brighter the more systems endorse it.</p>
+    <p>The slider changes <strong>what each model was shown</strong>, and nothing else.
+    Same words, same models, same everything.</p>
+    <div class="stim">
+      <div><span class="eyebrow">slider left &mdash; bare</span><code>dog</code></div>
+      <div class="arrowto">&rarr;</div>
+      <div><span class="eyebrow">slider right &mdash; in context</span><code>I am thinking about dog.</code></div>
+    </div>
+    <p>That is the whole experiment. Six short sentences like that one, and only the
+    word's own position is read out of each. <strong>Positions on the map stay fixed</strong>
+    as you drag, so you are watching what changed, not a reshuffle.</p>
+    <p><strong>What to look for:</strong> dots tighten, the fog burns off, and the faint
+    tangle of one-system links thins into fewer, stronger, agreed ones.</p>
   </div>
 
   <div class="stage">
     <div class="ctl">
       <label>Stimulus
         <input id="morph" type="range" min="0" max="100" value="0" step="1" aria-label="Bare term to term in context">
-        <span class="state" id="state">bare term</span>
+        <span class="state" id="state">bare word</span>
       </label>
       <span class="keys" id="keys"></span>
     </div>
@@ -120,13 +176,18 @@ tr:last-child td{border-bottom:none}
 </section>
 
 <section>
-  <h2>And one relation became portable</h2>
+  <h2>The part that actually mattered</h2>
   <div class="prose">
-    <p>The question this run was built to answer. Across runs 001 and 002 — every
-    scale from 0.5B to 3B — no relation could be carried from one model to another at
-    the level of a <em>specific pair</em>. Zero of ten, every time. That was the
-    project's most stubborn negative result.</p>
-    <p>It was a fact about the stimulus, not about the models.</p>
+    <p>A map shows which words sit together. The harder question is whether the
+    <em>relationships</em> between them are shared — whether "a dog <em>is a</em> mammal"
+    and "a hammer <em>is a</em> tool" are the same move, and whether one model's version
+    of that move means anything to another model.</p>
+    <p>Across every earlier run, the answer was no. Ten relation types, three model
+    sizes from 0.5B to 3B parameters, and not one of them transferred between models.
+    That was this project's most stubborn negative result.</p>
+    <p><strong>It turned out to be a fact about the stimulus, not about the models.</strong>
+    Below, each relation's evidence moves from where it stood with bare words to where it
+    stands with context. Further right is stronger.</p>
   </div>
   <div class="relwrap">
     <table>
@@ -248,7 +309,7 @@ const NSYS=DATA.bare.nsys;
       DATA.context.stability.reduce((a,b)=>a+b,0)/212, T).toFixed(3);
     document.getElementById("s3").textContent=T<0.5?DATA.bare.unanimous:DATA.context.unanimous;
     document.getElementById("state").textContent =
-      T===0?"bare term":T===1?"term in context":`${Math.round(T*100)}% context`;
+      T===0?"bare word":T===1?"word in a sentence":`${Math.round(T*100)}% context`;
   }
 
   document.getElementById("morph").addEventListener("input",e=>{T=Number(e.target.value)/100;paint();});
