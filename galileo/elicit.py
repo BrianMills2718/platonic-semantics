@@ -55,6 +55,16 @@ PILOT_CONCEPTS = [
 
 
 def schema_for(n: int) -> dict:
+    """Each judgment carries the number of the pair it belongs to.
+
+    A bare list is mapped by position, so one extra or missing value silently
+    shifts every judgment onto the wrong pair -- and with a whole run of these
+    being averaged, that corruption would not announce itself. It did announce
+    itself here only because the array length was pinned: a model returned 46
+    distances for 45 pairs and the run died. Labelling each judgment makes the
+    failure detectable rather than merely fatal, and lets a stray extra entry be
+    dropped instead of discarding the call.
+    """
     return {
         "type": "object",
         "additionalProperties": False,
@@ -63,13 +73,21 @@ def schema_for(n: int) -> dict:
             "distances": {
                 "type": "array",
                 "minItems": n,
-                "maxItems": n,
                 "description": (
-                    "One distance per numbered pair, in the order given. Each is a "
-                    "positive number on the same scale as the stated reference "
-                    "distance. Not a similarity score and not bounded by 1."
+                    "One entry per numbered pair. Each is a positive number on the "
+                    "same scale as the stated reference distance -- not a similarity "
+                    "score and not bounded by 1."
                 ),
-                "items": {"type": "number"},
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": ["pair", "distance"],
+                    "properties": {
+                        "pair": {"type": "integer",
+                                 "description": "The number of the pair, as listed."},
+                        "distance": {"type": "number"},
+                    },
+                },
             }
         },
     }
@@ -178,9 +196,18 @@ def elicit(model, pairs, rod, trace_id, budget, relation=None, context_concepts=
                 "elicitation method, which cannot be answered from the default model alone."
         }),
     )
-    vals = [float(v) for v in data["distances"]]
-    if len(vals) != len(pairs):
-        raise RuntimeError(f"asked for {len(pairs)} distances, got {len(vals)}")
+    by_pair = {}
+    for entry in data["distances"]:
+        i = int(entry["pair"])
+        if not 1 <= i <= len(pairs):
+            continue                      # a stray entry outside the list; drop it
+        by_pair[i] = float(entry["distance"])
+    missing = [i for i in range(1, len(pairs) + 1) if i not in by_pair]
+    if missing:
+        raise RuntimeError(
+            f"no judgment returned for pair(s) {missing[:5]}"
+            f"{'...' if len(missing) > 5 else ''} of {len(pairs)}")
+    vals = [by_pair[i] for i in range(1, len(pairs) + 1)]
     if any(v < 0 for v in vals):
         raise RuntimeError("negative distance returned; the scale is not being honoured")
     return vals, result

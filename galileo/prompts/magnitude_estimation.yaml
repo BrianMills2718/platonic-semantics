@@ -23,6 +23,8 @@ messages:
           apart as the reference are {{ rod_value_doubled }}. Concepts that are nearly
           the same are close to 0. There is no upper limit.
         - Judge how far apart the concepts are in meaning{% if relation %}, specifically with respect to {{ relation }}{% endif %}.
+        - Give one entry per pair, each carrying that pair's number as listed,
+          so a judgment is never attached to the wrong pair.
         - Answer with numbers only. Do not explain, hedge, or round to comfortable values.
   - role: user
     content: |
