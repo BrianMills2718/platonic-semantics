@@ -450,3 +450,37 @@ bare-versus-averaged contrast, which is the preregistered question, is unaffecte
 
 Installing `python3.12-dev` would restore the GPU route and is the fix if this
 recurs; it needs root and was not attempted unattended.
+
+## D21 — The Galileo arm becomes an interrogative programme, and is recorded
+
+Everything from arm 1 onward has been executed without an entry here; D20 still
+covers run 003. This records the arm and fixes its direction.
+
+**What happened.** Arm 1 (asking models for magnitude estimates) failed its
+validity checks in its first pilot, and the project responded by abandoning
+elicitation and inferring distances from word co-occurrence instead — for models
+as well as for people. That was a mistake twice over. It discarded the
+ratio-scale property that lets two respondents be compared without alignment,
+and it applied to models an inference method whose justification is that its
+subject *cannot be interrogated*.
+
+**What fixed it.** Two of the four remedies the Galileo README had listed as
+untried. The error was a whole-call multiplicative shift, so dividing each call
+by its own mean cancels it exactly while preserving every within-call ratio;
+twenty-five orders rather than five did the rest. Test–retest 0.827 → 0.929,
+rod-swap 0.773 → 0.948, rod ratio CV 0.151 → 0.077.
+
+**What it revealed.** Asking a model and counting words in text the same model
+wrote are unrelated: ρ = 0.010 on identical concepts. The generated corpora
+largely measured the prompt grid this project chose, so `CONVERGENCE.md` should
+not be read as evidence about models; the claim survives on the elicited maps,
+which carry no such confound.
+
+**Direction.** Elicitation is the primary instrument for models; text inference
+is retained for people, who cannot be interviewed; the activations route
+(runs 001–003) becomes an independent check rather than the only route. The
+programme and its phases are in `GALILEO_PROGRAMME.md`. The critical path is to
+draw the elicited space — several models in one frame with no alignment step,
+which the ratio scale makes legitimate and which nothing in this repository has
+yet produced.
+
