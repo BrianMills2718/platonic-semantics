@@ -102,6 +102,9 @@ def main() -> int:
     ap.add_argument("--vocab-size", type=int, default=10)
     ap.add_argument("--window", type=int, default=25)
     ap.add_argument("--max-context", type=int, default=3000)
+    ap.add_argument("--match", choices=("tokens", "concepts"), default="tokens",
+                    help="equalise total content tokens, or occurrences of the shared "
+                         "concepts (the quantity PPMI actually counts)")
     ap.add_argument("--out", default="results/respondent_space.json")
     args = ap.parse_args()
 
@@ -130,6 +133,37 @@ def main() -> int:
     if len(vocab) < args.vocab_size:
         raise RuntimeError(f"only {len(vocab)} concepts are frequent in every respondent")
     print(f"shared concepts: {', '.join(vocab)}\n")
+
+    if args.match == "concepts":
+        # Equal token counts do not mean equal evidence. These groups differ
+        # monotonically in how densely they use the shared concepts -- the most
+        # hostile band mentions `trump` in 14.6% of posts against 10.3% for the
+        # warmest -- and PPMI is estimated from concept OCCURRENCES, not from
+        # tokens. Matching tokens therefore hands the denser groups more data and
+        # would let a density gradient masquerade as a semantic one.
+        vset = set(vocab)
+
+        def occurrences(posts):
+            return sum(sum(1 for w in tokenize(p["text"]) if w in vset) for p in posts)
+
+        def take_occurrences(posts, target):
+            out, tot = [], 0
+            for p in posts:
+                out.append(p)
+                tot += sum(1 for w in tokenize(p["text"]) if w in vset)
+                if tot >= target:
+                    return out
+            raise RuntimeError(f"only {tot:,} concept occurrences available, need {target:,}")
+
+        have = {k: occurrences(v) for k, v in corpora.items()}
+        cbudget = min(have.values())
+        print("concept occurrences before matching:")
+        for k in names:
+            print(f"  {k:<16s} {have[k]:>8,}")
+        corpora = {k: take_occurrences(v, cbudget) for k, v in corpora.items()}
+        print(f"\nall re-cut to {cbudget:,} occurrences of the shared concepts")
+        print(f"  (token counts now differ: "
+              f"{', '.join(f'{content_tokens(v):,}' for v in corpora.values())})\n")
 
     iu = np.triu_indices(len(vocab), 1)
 
@@ -197,7 +231,7 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({
         "respondents": names, "human": human_names, "vocab": vocab,
-        "matched_content_tokens": budget,
+        "matched_content_tokens": budget, "match_mode": args.match,
         "n_posts": {k: len(v) for k, v in corpora.items()},
         "disagreement": D.tolist(),
         "coords": coords.tolist(), "variance_kept_2d": kept,

@@ -30,9 +30,26 @@ attitude ever being shown to the instrument.
   middle bands sit 0.016 apart with error bars of 0.26 and 0.39 and swap order on
   the first axis. Nothing should be read into which of them comes first; the
   claim is about the sequence as a whole.
-* **This says nothing about causation.** Sentiment may organise the semantics, or
-  both may follow from which topics each group writes about. Holding topic fixed
-  while varying sentiment would separate those, and has not been done.
+* **Two confounds were tested, and neither explains it.**
+
+  *Different topics.* If hostile and warm groups simply wrote about different
+  things, the geometry would track topic rather than sentiment. They do not: the
+  largest difference in topic mix between any two of the five groups is **0.079**
+  on a 0–1 scale, i.e. they discuss the same concepts in nearly the same
+  proportions.
+
+  *Different concept density.* This one was real and had been missed. Every
+  concept is used more often by the more hostile groups, monotonically — `trump`
+  appears in 14.6% of the most hostile group's posts against 10.3% of the
+  warmest's. PPMI is estimated from concept *occurrences*, not from tokens, so
+  matching token counts hands the denser groups more evidence and a pure density
+  gradient could masquerade as a semantic one. Re-matching all five groups on
+  equal occurrences of the shared concepts (`--match concepts`) weakens the
+  effect but does not remove it: **ρ = 0.721, still the best of all 120 orderings,
+  p = 0.017**. Data: `results/human_matched_concepts.json`.
+
+* **Causation is still open.** Sentiment could organise the semantics, or some
+  third property of these writers could drive both. Nothing here settles that.
 
 ## Why the numbers here beat the combined map
 
