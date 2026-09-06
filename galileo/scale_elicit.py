@@ -41,14 +41,14 @@ from elicit import elicit, rescale_to_unit_mean
 ROOT = pathlib.Path(__file__).resolve().parent
 
 
-def load_concepts(path, limit):
+def load_concepts(path, limit, offset=0):
     rows = list(csv.reader(open(path)))
     words = [r[1].strip().lower() for r in rows[1:] if len(r) > 1 and r[1].strip()]
     seen, out = set(), []
     for w in words:
         if w not in seen:
             seen.add(w); out.append(w)
-    return out[:limit]
+    return out[offset:offset + limit]
 
 
 def equate(batch_vals, anchor_idx, reference):
@@ -77,6 +77,11 @@ def main() -> int:
     ap.add_argument("--model", default="openrouter/openai/gpt-5.6-luna")
     ap.add_argument("--concepts", default="../benchmark/concepts.csv")
     ap.add_argument("--n-concepts", type=int, default=40)
+    ap.add_argument("--offset", type=int, default=0,
+                    help="skip this many concepts first, giving a DISJOINT set. Two "
+                         "findings in this project turned out to be artefacts of a "
+                         "homogeneous concept set and only showed it when rerun on a "
+                         "different one, so any result from a single set is provisional.")
     ap.add_argument("--anchors", type=int, default=8,
                     help="pairs repeated in every batch, which put the batches on one scale")
     ap.add_argument("--batch", type=int, default=40, help="new pairs per call")
@@ -91,7 +96,7 @@ def main() -> int:
     ap.add_argument("--out", default="results/scaled_space.json")
     args = ap.parse_args()
 
-    concepts = load_concepts(ROOT / args.concepts, args.n_concepts)
+    concepts = load_concepts(ROOT / args.concepts, args.n_concepts, args.offset)
     all_pairs = list(itertools.combinations(concepts, 2))
     rng = random.Random(args.seed)
     rng.shuffle(all_pairs)
@@ -173,7 +178,7 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps({
         "model": args.model, "concepts": concepts, "rod": list(rod),
-        "batch_seed": args.seed,
+        "batch_seed": args.seed, "concept_offset": args.offset,
         "n_pairs": len(all_pairs), "batches": len(batches),
         "anchors": [list(a) for a in anchors],
         "anchor_drift": drifts, "permutations": args.permutations,

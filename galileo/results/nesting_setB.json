@@ -1,0 +1,93 @@
+{
+ "concepts": [
+  "darkness",
+  "sun",
+  "moon",
+  "star",
+  "planet",
+  "earth",
+  "energy",
+  "matter",
+  "gravity",
+  "object",
+  "device",
+  "machine",
+  "vehicle",
+  "car",
+  "bicycle",
+  "boat",
+  "wheel",
+  "engine",
+  "house",
+  "room",
+  "door",
+  "window",
+  "chair",
+  "table",
+  "bed",
+  "knife",
+  "hammer",
+  "bridge",
+  "road",
+  "computer",
+  "phone",
+  "camera",
+  "book",
+  "page",
+  "pen",
+  "key",
+  "lock",
+  "cup",
+  "bottle",
+  "stove"
+ ],
+ "models": [
+  "deepseek-v4-flash",
+  "glm-5.2",
+  "gpt-5.6-luna"
+ ],
+ "rows": [
+  {
+   "k": 4,
+   "singleton_share": 0.25,
+   "beat_chance": 3,
+   "pairs": 3,
+   "recovery": 0.5414435627692958
+  },
+  {
+   "k": 6,
+   "singleton_share": 0.2222222222222222,
+   "beat_chance": 3,
+   "pairs": 3,
+   "recovery": 0.48474516596223083
+  },
+  {
+   "k": 8,
+   "singleton_share": 0.20833333333333334,
+   "beat_chance": 3,
+   "pairs": 3,
+   "recovery": 0.6660791412964977
+  },
+  {
+   "k": 10,
+   "singleton_share": 0.19999999999999998,
+   "beat_chance": 3,
+   "pairs": 3,
+   "recovery": 0.7929921932537418
+  },
+  {
+   "k": 12,
+   "singleton_share": 0.2222222222222222,
+   "beat_chance": 3,
+   "pairs": 3,
+   "recovery": 0.7679304083740742
+  },
+  {
+   "k": 15,
+   "singleton_share": 0.2888888888888889,
+   "beat_chance": 3,
+   "pairs": 3,
+   "recovery": 0.7467930698395654
+  }
+ ]
+}

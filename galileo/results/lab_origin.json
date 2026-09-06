@@ -1,0 +1,63 @@
+{
+ "concepts": [
+  "democracy",
+  "censorship",
+  "capitalism",
+  "socialism",
+  "communism",
+  "protest",
+  "dissent",
+  "revolution",
+  "freedom",
+  "authority",
+  "surveillance",
+  "propaganda",
+  "sovereignty",
+  "harmony",
+  "stability",
+  "patriotism",
+  "christianity",
+  "buddhism",
+  "atheism",
+  "tradition",
+  "individual",
+  "collective",
+  "market",
+  "sun",
+  "water",
+  "tree",
+  "stone",
+  "bird",
+  "river",
+  "mountain",
+  "bread",
+  "chair",
+  "road",
+  "cloud",
+  "fish",
+  "salt",
+  "glass",
+  "wood",
+  "iron",
+  "rain"
+ ],
+ "labs": {
+  "gpt-5.6-luna": "US",
+  "glm-5.2": "CN",
+  "deepseek-v4-flash": "CN"
+ },
+ "by_kind": {
+  "loaded": {
+   "same_lab": 0.6704213850739014,
+   "cross_lab": 0.5827401515522022,
+   "gap": 0.08768123352169921
+  },
+  "neutral": {
+   "same_lab": 0.651128285864224,
+   "cross_lab": 0.6983540861600115,
+   "gap": -0.04722580029578749
+  }
+ },
+ "interaction": 0.1349070338174867,
+ "verdict": "lab origin matters MORE for politically loaded concepts than for neutral ones -- support for the training-provenance explanation"
+}

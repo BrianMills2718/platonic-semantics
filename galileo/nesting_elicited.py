@@ -66,7 +66,10 @@ def main() -> int:
     ap.add_argument("--out", default="results/nesting_elicited.json")
     args = ap.parse_args()
 
-    files = sorted(ROOT.glob(args.glob.replace("results/", "results/")))
+    # Accept either "results/x_*.json" or a bare "x_*.json"; the earlier no-op
+    # replace() silently globbed the wrong directory and reported zero spaces.
+    pattern = args.glob if args.glob.startswith("results/") else f"results/{args.glob}"
+    files = sorted(ROOT.glob(pattern))
     if len(files) < 2:
         raise RuntimeError(f"need at least two spaces, found {len(files)}")
 
