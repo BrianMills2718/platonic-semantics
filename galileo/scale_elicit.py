@@ -124,6 +124,8 @@ def main() -> int:
             for slot, orig in enumerate(idx):
                 restored[orig] = vals[slot]
             got = [v for v in restored if v is not None]
+            if not got:
+                continue          # the model returned nothing usable for this order
             if len(got) < len(pairs) * 0.7:
                 continue          # too thin to rescale meaningfully; drop this order
             m = statistics.fmean(got) or 1.0

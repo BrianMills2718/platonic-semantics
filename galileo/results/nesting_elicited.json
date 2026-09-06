@@ -43,50 +43,51 @@
  ],
  "models": [
   "deepseek-v4-flash",
+  "glm-5.2",
   "gpt-5.6-luna"
  ],
  "rows": [
   {
    "k": 4,
-   "singleton_share": 0.0,
-   "beat_chance": 1,
-   "pairs": 1,
-   "recovery": 0.5755288874991292
+   "singleton_share": 0.08333333333333333,
+   "beat_chance": 3,
+   "pairs": 3,
+   "recovery": 0.5849292184118421
   },
   {
    "k": 6,
-   "singleton_share": 0.16666666666666666,
-   "beat_chance": 1,
-   "pairs": 1,
-   "recovery": 0.5430959768022302
+   "singleton_share": 0.2222222222222222,
+   "beat_chance": 3,
+   "pairs": 3,
+   "recovery": 0.6051305899055679
   },
   {
    "k": 8,
-   "singleton_share": 0.25,
-   "beat_chance": 1,
-   "pairs": 1,
-   "recovery": 0.6970847727731193
+   "singleton_share": 0.2916666666666667,
+   "beat_chance": 3,
+   "pairs": 3,
+   "recovery": 0.713953899920346
   },
   {
    "k": 10,
-   "singleton_share": 0.30000000000000004,
-   "beat_chance": 1,
-   "pairs": 1,
-   "recovery": 0.7478124920873128
+   "singleton_share": 0.3,
+   "beat_chance": 3,
+   "pairs": 3,
+   "recovery": 0.7033212198411528
   },
   {
    "k": 12,
-   "singleton_share": 0.25,
-   "beat_chance": 1,
-   "pairs": 1,
-   "recovery": 0.7450756613714613
+   "singleton_share": 0.27777777777777773,
+   "beat_chance": 3,
+   "pairs": 3,
+   "recovery": 0.7669882889441801
   },
   {
    "k": 15,
-   "singleton_share": 0.3,
-   "beat_chance": 1,
-   "pairs": 1,
-   "recovery": 0.6303082404367428
+   "singleton_share": 0.3333333333333333,
+   "beat_chance": 3,
+   "pairs": 3,
+   "recovery": 0.7109341957566992
   }
  ]
 }

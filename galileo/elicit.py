@@ -72,7 +72,14 @@ def schema_for(n: int) -> dict:
         "properties": {
             "distances": {
                 "type": "array",
-                "minItems": n,
+                # Deliberately 1, not n. Completeness is enforced by the caller,
+                # which drops a thin permutation and fails only when a pair is
+                # missing from EVERY order. Leaving minItems at n meant a model
+                # returning an empty or short list blew up inside validation
+                # before that logic ran, killing a 20-minute multi-batch run --
+                # two different failure modes fighting each other over the same
+                # rule.
+                "minItems": 1,
                 "description": (
                     "One entry per numbered pair. Each is a positive number on the "
                     "same scale as the stated reference distance -- not a similarity "
