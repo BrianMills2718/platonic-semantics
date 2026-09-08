@@ -1,5 +1,7 @@
 # platonic-semantics
 
+> **Global navigation:** use the [Vision knowledge index](https://github.com/BrianMills2718/vision/blob/main/wiki/index.md) as the canonical cross-repo entry point. This file remains the local entry point for this repository’s implementation, design, and evidence.
+
 Do independently trained language models, in different languages, arrive at the
 same *shape* of semantic space — and do labelled semantic relations behave like
 reusable transformations inside it?
