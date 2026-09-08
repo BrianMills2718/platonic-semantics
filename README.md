@@ -35,6 +35,15 @@ claim is the least supported one.
 Part of a wider set of "platonic" projects; the mathematics side lives in
 [`platonic-atlas-math`](https://github.com/BrianMills2718/platonic-atlas-math).
 
+**Cross-repo role.** This is empirical latent-semantic research, not semantic
+authority for the explicit ontology/compiler/capability stack. Treat geometry
+as a possible proposal prior or anomaly signal; any explicit mapping should be
+promoted only through a governed provenance-bearing mapping/evaluation layer.
+The useful integration experiment is whether latent signals improve precision,
+coverage, calibration, or abstention in such a mapping task. For the current
+authority matrix and cleanup policy, see the
+[current ontology/semantic cluster architecture](https://github.com/BrianMills2718/vision/blob/main/wiki/synthesis/ontology-semantic-cluster-current-architecture-2026-09-07.md).
+
 ## The idea
 
 Two models with different hidden sizes have no shared coordinate system, so
