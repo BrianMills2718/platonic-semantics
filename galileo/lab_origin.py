@@ -40,6 +40,7 @@ import pathlib
 import statistics
 
 import numpy as np
+from scipy.stats import rankdata
 
 ROOT = pathlib.Path(__file__).resolve().parent
 
@@ -49,8 +50,10 @@ LAB = {"gpt-5.6-luna": "US", "glm-5.2": "CN", "deepseek-v4-flash": "CN"}
 
 
 def spearman(a, b):
-    ra = np.argsort(np.argsort(a)).astype(float)
-    rb = np.argsort(np.argsort(b)).astype(float)
+    # Average ranks for ties. argsort(argsort(x)) hands tied values arbitrary
+    # distinct ranks, which biases rho and makes it depend on input order.
+    ra = rankdata(a, method="average")
+    rb = rankdata(b, method="average")
     ra -= ra.mean(); rb -= rb.mean()
     den = np.sqrt((ra ** 2).sum()) * np.sqrt((rb ** 2).sum())
     return float((ra * rb).sum() / den) if den else float("nan")

@@ -212,9 +212,17 @@ def main():
                     r=r/np.maximum(np.linalg.norm(r,axis=-1,keepdims=True),1e-12)
                     acc=r if acc is None else acc+r
                 reps=acc/len(average_modes)
-            else:
+            elif templates[lang].strip()=="{term}":
+                # The prompt is the term itself, so every content token is the term.
                 texts=[templates[lang].format(term=r[lang]) for r in rows]
                 reps=encode_all(tok,model,texts,cfg["batch_size"],cfg["max_length"],device)
+            else:
+                # A templated prompt: pool only the term's tokens, exactly as the
+                # averaged path does, or the template's words become part of
+                # every concept's representation.
+                reps=encode_term_in_context(
+                    tok,model,templates[lang],[row[lang] for row in rows],
+                    cfg["batch_size"],cfg["max_length"],device)
             path=outdir/f"{key}__{lang}__{prompt_mode}.npz"
             np.savez_compressed(path, concept_ids=ids, reps=reps.astype(np.float16),
                                 model_key=key, model_name=name, language=lang,

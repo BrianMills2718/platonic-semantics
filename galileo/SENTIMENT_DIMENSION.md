@@ -7,8 +7,15 @@ space it recovers nevertheless lines the five groups up in sentiment order.
 
 Of the **120** possible orderings of five groups, the true sentiment order gives
 the strongest relationship between a group's position and its semantic distance
-from the others: **ρ = 0.794**, which is the highest value *any* ordering
+from the others: **ρ = 0.680**, which is the highest value *any* ordering
 achieves. Only it and its mirror reach it — **p = 0.017**, exact enumeration.
+
+(Corrected 2026-09-27. This was first reported as ρ = 0.794, and the
+concept-matched figure below as 0.721. Band distances are tied by construction
+-- four pairs sit one band apart -- and the Spearman used then gave tied values
+arbitrary distinct ranks instead of their average rank, inflating ρ. With ties
+ranked correctly both values fall; the ordering is still the unique best and p
+is unchanged, so the conclusion stands. `tests/test_audit_fixes.py` locks this.)
 
 Figure: `results/sentiment_dimension.html`. Data: `results/human_only_space.json`.
 
@@ -45,7 +52,7 @@ attitude ever being shown to the instrument.
   matching token counts hands the denser groups more evidence and a pure density
   gradient could masquerade as a semantic one. Re-matching all five groups on
   equal occurrences of the shared concepts (`--match concepts`) weakens the
-  effect but does not remove it: **ρ = 0.721, still the best of all 120 orderings,
+  effect but does not remove it: **ρ = 0.636, still the best of all 120 orderings,
   p = 0.017**. Data: `results/human_matched_concepts.json`.
 
 * **Causation is still open.** Sentiment could organise the semantics, or some

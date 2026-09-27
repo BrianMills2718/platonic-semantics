@@ -195,3 +195,30 @@ extract_representations.py:
 
 analyze_semantic_geometry.py:
 `545427d502ed5f307ff00a48180a97b89b5746a6bbf00a9f51a8bc21c63467f3`
+
+## Experiment 0.2b — templated-prompt pooling correction, 2026-09-27
+
+Not a new experiment. Found by an external code audit.
+
+**The defect.** With a templated `--prompt-mode` (e.g. `neutral`, "The concept
+is {term}.") and no `--average-modes`, `main` sent the rendered prompts to
+`encode_all`, which mean-pools every content token -- so the template's words
+became part of every concept's representation. Term-span pooling
+(`encode_term_in_context`) was used only on the averaging path, although its
+own docstring states it is required whenever a template is added.
+
+**Effect on the result: none.** Every saved representation was extracted with
+`bare` (the template is the term itself, so pooling all content tokens is
+correct and that path is unchanged) or with `--average-modes` (already
+term-span). No `__neutral.npz` exists under `outputs/`.
+
+**Code change.** A non-bare single template now uses `encode_term_in_context`.
+`tests/test_audit_fixes.py` asserts both paths.
+
+### Core code SHA-256 (0.2b)
+
+extract_representations.py:
+`12bfb1cb8f6768bc2bced41e349bd1cd60547aa06167376cfc3c328d87b6e0b9`
+
+analyze_semantic_geometry.py:
+`545427d502ed5f307ff00a48180a97b89b5746a6bbf00a9f51a8bc21c63467f3`
