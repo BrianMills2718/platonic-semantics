@@ -153,8 +153,8 @@ def rescale_to_unit_mean(vals):
     from 0.475 to 0.195 for GLM-5.2 and 0.236 to 0.189 for Luna. So most of the
     instability really was one number per call, not noise in each judgment.
     """
-    m = statistics.fmean([v for v in vals if v > 0]) or 1.0
-    return [v / m for v in vals]
+    m = statistics.fmean([v for v in vals if v is not None and v > 0]) or 1.0
+    return [None if v is None else v / m for v in vals]
 
 
 def elicit_averaged(model, pairs, rod, trace_id, budget, n_perms, rng,
@@ -165,21 +165,45 @@ def elicit_averaged(model, pairs, rod, trace_id, budget, n_perms, rng,
     back to canonical order before averaging, so list position cannot correlate
     with any particular pair across the set. With `rescale`, each call is first
     divided by its own mean, which is what makes the averaging work at all.
+
+    A call that omits some judgments is kept with gaps (None) rather than
+    killing the run, per the completeness policy in `schema_for`: a permutation
+    answering fewer than MIN_PERM_COVERAGE of the pairs is too thin to rescale
+    and is dropped, and the run fails only when a pair is missing from EVERY
+    kept permutation. Each pair's mean is over the permutations that saw it.
     """
     per_perm, raw_perm = [], []
     for _ in range(n_perms):
         idx = list(range(len(pairs)))
         rng.shuffle(idx)
         shuffled = [pairs[i] for i in idx]
-        vals, _ = elicit(model, shuffled, rod, trace_id, budget, relation)
-        restored = [0.0] * len(pairs)
+        vals, _ = elicit(model, shuffled, rod, trace_id, budget, relation,
+                         allow_partial=True)
+        restored = [None] * len(pairs)
         for slot, original_i in enumerate(idx):
             restored[original_i] = vals[slot]
+        if sum(v is not None for v in restored) < len(pairs) * MIN_PERM_COVERAGE:
+            continue                      # too thin to rescale; drop this order
         raw_perm.append(restored)
         per_perm.append(rescale_to_unit_mean(restored) if rescale else restored)
-    mean = [statistics.fmean(col) for col in zip(*per_perm)]
-    raw_mean = [statistics.fmean(col) for col in zip(*raw_perm)]
+    if not per_perm:
+        raise RuntimeError(f"no usable permutation out of {n_perms}")
+    mean, raw_mean = _mean_seen(per_perm, pairs), _mean_seen(raw_perm, pairs)
     return mean, per_perm, raw_mean
+
+
+# Same threshold `scale_elicit` uses for the same decision.
+MIN_PERM_COVERAGE = 0.7
+
+
+def _mean_seen(perms, pairs):
+    out = []
+    for pair, col in zip(pairs, zip(*perms)):
+        seen = [v for v in col if v is not None]
+        if not seen:
+            raise RuntimeError(f"pair {pair} was missing from every permutation")
+        out.append(statistics.fmean(seen))
+    return out
 
 
 def elicit(model, pairs, rod, trace_id, budget, relation=None, context_concepts=None,
@@ -302,9 +326,10 @@ def main() -> int:
 
     # How much does presentation order move a single pair's answer? Measured on
     # the raw per-permutation values, not on the averages that hide it.
+    seen_cols = [[v for v in col if v is not None] for col in zip(*a1_perms)]
     order_cv = statistics.fmean([
         statistics.pstdev(col) / statistics.fmean(col)
-        for col in zip(*a1_perms) if statistics.fmean(col) > 0
+        for col in seen_cols if len(col) > 1 and statistics.fmean(col) > 0
     ]) if len(a1_perms) > 1 else float("nan")
     retest = pearson(a1, a2)
     rodcorr = pearson(a1, b1)
